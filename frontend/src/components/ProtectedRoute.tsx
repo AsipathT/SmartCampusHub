@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) 
 
   if (requiredRole && user?.role !== requiredRole && user?.role !== 'ADMIN') {
     // Basic fallback if role is insufficient
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/app/facilities/dashboard" replace />;
   }
 
   return <Outlet />;

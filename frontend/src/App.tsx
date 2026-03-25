@@ -30,25 +30,25 @@ const App: React.FC = () => {
 
           {/* Protected Application Routes */}
           <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
+            <Route path="/app" element={<MainLayout />}>
               
-              {/* Redirect root to dashboard */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* Redirect /app to dashboard */}
+              <Route index element={<Navigate to="/app/facilities/dashboard" replace />} />
               
               {/* Facilities & Assets Module Routes */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/resources" element={<ResourceList />} />
-              <Route path="/resources/new" element={<AddResource />} />
-              <Route path="/resources/manage" element={<ProtectedRoute requiredRole="ADMIN" />} >
+              <Route path="facilities/dashboard" element={<Dashboard />} />
+              <Route path="facilities/resources" element={<ResourceList />} />
+              <Route path="facilities/resources/add" element={<AddResource />} />
+              <Route path="facilities/resources/manage" element={<ProtectedRoute requiredRole="ADMIN" />} >
                  <Route index element={<ManageResources />} />
               </Route>
-              <Route path="/resources/:id" element={<ResourceDetails />} />
+              <Route path="facilities/resources/:id" element={<ResourceDetails />} />
               
             </Route>
           </Route>
 
           {/* Fallback 404 Route */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/app/facilities/dashboard" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

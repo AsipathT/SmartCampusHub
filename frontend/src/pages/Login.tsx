@@ -31,7 +31,7 @@ export const Login: React.FC = () => {
         
         login(mockUser, mockToken);
         toast.success(`Welcome back, ${mockUser.name}!`);
-        navigate('/dashboard');
+        navigate('/app/facilities/dashboard');
       } else {
         toast.error('Invalid credentials. Please enter email and password.');
       }
