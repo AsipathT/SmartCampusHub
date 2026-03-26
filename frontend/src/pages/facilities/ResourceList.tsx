@@ -76,8 +76,12 @@ export const ResourceList: React.FC = () => {
                   <tr key={resource.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center border border-blue-100/50">
-                           <Box size={20} />
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center border border-blue-100/50 overflow-hidden">
+                           {resource.imageUrl ? (
+                             <img src={`http://localhost:8080${resource.imageUrl}`} alt={resource.name} className="w-full h-full object-cover" />
+                           ) : (
+                             <Box size={20} />
+                           )}
                         </div>
                         <span className="font-bold text-slate-800">{resource.name}</span>
                       </div>

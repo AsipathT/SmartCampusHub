@@ -29,16 +29,16 @@ public class FacilityController {
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Page<FacilityResponseDTO>> getFacilities(
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) FacilityType type,
-            @RequestParam(required = false) Integer capacity,
+            @RequestParam(name = "location", required = false) String location,
+            @RequestParam(name = "type", required = false) FacilityType type,
+            @RequestParam(name = "capacity", required = false) Integer capacity,
             Pageable pageable) {
         return ResponseEntity.ok(facilityService.getAllFacilities(location, type, capacity, pageable));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<FacilityResponseDTO> getFacility(@PathVariable Long id) {
+    public ResponseEntity<FacilityResponseDTO> getFacility(@PathVariable("id") Long id) {
         return ResponseEntity.ok(facilityService.getFacilityById(id));
     }
 
@@ -51,14 +51,14 @@ public class FacilityController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FacilityResponseDTO> updateFacility(
-            @PathVariable Long id, 
+            @PathVariable("id") Long id, 
             @Valid @RequestBody FacilityRequestDTO dto) {
         return ResponseEntity.ok(facilityService.updateFacility(id, dto));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteFacility(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteFacility(@PathVariable("id") Long id) {
         facilityService.deleteFacility(id);
         return ResponseEntity.noContent().build();
     }
@@ -66,7 +66,7 @@ public class FacilityController {
     @PostMapping("/{id}/image")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> uploadImage(
-            @PathVariable Long id, 
+            @PathVariable("id") Long id, 
             @RequestParam("file") MultipartFile file) {
         String url = facilityService.uploadImage(id, file);
         return ResponseEntity.ok(Map.of(

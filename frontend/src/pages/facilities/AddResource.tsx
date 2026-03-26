@@ -8,15 +8,17 @@ export const AddResource: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
-    name: '', type: 'Hall', capacity: 0, location: '', status: 'ACTIVE' as 'ACTIVE' | 'OUT_OF_SERVICE' | 'MAINTENANCE', availabilityTime: ''
+    name: '', type: 'Hall', capacity: 0, location: '', status: 'ACTIVE' as 'ACTIVE' | 'OUT_OF_SERVICE' | 'MAINTENANCE', availabilityTime: '08:00 - 20:00'
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) return toast.error('Image must be less than 5MB');
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -31,14 +33,28 @@ export const AddResource: React.FC = () => {
 
     setLoading(true);
     try {
-      const payload = { ...formData, imageUrl: imagePreview || undefined };
-      await createResource(payload);
-      toast.success('Resource created successfully!');
+      const payload = { ...formData };
+      const createdResource = await createResource(payload);
+      
+      if (selectedFile && createdResource.id) {
+        toast.success(`Resource created. Uploading image...`);
+        const form = new FormData();
+        form.append('file', selectedFile);
+        
+        // Manual api call since we don't have it explicitly in resourceApi for multipart yet.
+        await fetch(`http://localhost:8080/api/v1/facilities/${createdResource.id}/image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Basic ' + btoa('admin:admin')
+          },
+          body: form
+        });
+      }
+
+      toast.success('Resource registered successfully!');
       navigate('/resources');
     } catch (err) {
-      toast.error('Failed to create resource. Connecting to backend...');
-      // Fallback for development if backend fails
-      setTimeout(() => navigate('/resources'), 1000);
+      toast.error('Failed to register resource.');
     } finally {
       setLoading(false);
     }
@@ -88,9 +104,12 @@ export const AddResource: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                 <label className="block text-sm font-semibold text-slate-700 mb-1">Availability</label>
-                 <input type="text" value={formData.availabilityTime} onChange={e => setFormData({...formData, availabilityTime: e.target.value})} 
-                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g. 08:00 - 18:00" />
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Availability Time</label>
+                <select value={formData.availabilityTime} onChange={e => setFormData({...formData, availabilityTime: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="08:00 - 18:00">08:00 - 18:00 (Standard)</option>
+                  <option value="08:00 - 20:00">08:00 - 20:00 (Extended)</option>
+                  <option value="00:00 - 23:59">00:00 - 23:59 (24 Hours)</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Initial Status</label>
