@@ -30,7 +30,7 @@ export const getResources = async (page = 0, size = 10, search = '', type = ''):
   if (search) params.search = search;
   if (type) params.type = type;
 
-  const response = await api.get('/facilities', { params });
+  const response = await api.get('/resources', { params });
   return {
     ...response.data,
     content: response.data.content ? response.data.content.map(mapToResource) : []
@@ -38,7 +38,7 @@ export const getResources = async (page = 0, size = 10, search = '', type = ''):
 };
 
 export const getResourceById = async (id: number | string): Promise<Resource> => {
-  const response = await api.get(`/facilities/${id}`);
+  const response = await api.get(`/resources/${id}`);
   return mapToResource(response.data);
 };
 
@@ -50,7 +50,7 @@ export const createResource = async (resource: Partial<Resource>): Promise<Resou
     availableFrom: times[0].trim(),
     availableTo: times[1].trim(),
   };
-  const response = await api.post('/facilities', facilityData);
+  const response = await api.post('/resources', facilityData);
   return mapToResource(response.data);
 };
 
@@ -62,11 +62,11 @@ export const updateResource = async (id: number | string, resource: Partial<Reso
     availableFrom: times[0].trim(),
     availableTo: times[1].trim(),
   };
-  const response = await api.put(`/facilities/${id}`, facilityData);
+  const response = await api.put(`/resources/${id}`, facilityData);
   return mapToResource(response.data);
 };
 
 export const deleteResource = async (id: number | string): Promise<void> => {
-  await api.delete(`/facilities/${id}`);
+  await api.delete(`/resources/${id}`);
 };
 

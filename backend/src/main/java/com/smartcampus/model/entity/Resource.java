@@ -1,7 +1,6 @@
 package com.smartcampus.model.entity;
 
-import com.smartcampus.model.enums.FacilityStatus;
-import com.smartcampus.model.enums.FacilityType;
+import com.smartcampus.model.enums.ResourceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -13,14 +12,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "facilities")
+@Table(name = "resources")
 @EntityListeners(AuditingEntityListener.class)
 @SQLRestriction("is_deleted = false")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Facility {
+public class Resource {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,9 +31,9 @@ public class Facility {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
-    private FacilityType type;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "resource_type_id", nullable = false)
+    private ResourceType type;
 
     @Column(nullable = false, length = 150)
     private String location;
@@ -44,7 +43,7 @@ public class Facility {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private FacilityStatus status;
+    private ResourceStatus status;
 
     private String imageUrl;
 

@@ -29,7 +29,7 @@ public class SecurityConfig {
             }))
             .csrf(csrf -> csrf.disable()) // Disabled for local development
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/facilities/**").permitAll() // Fine-grained control handled via method security annotations
+                .requestMatchers("/api/v1/resources/**", "/api/v1/resource-types/**", "/api/v1/bookings/**", "/api/v1/users/**").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(basic -> {}); // Standard Basic Auth for simplicity

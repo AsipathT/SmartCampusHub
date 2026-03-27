@@ -42,7 +42,7 @@ export const AddResource: React.FC = () => {
         form.append('file', selectedFile);
         
         // Manual api call since we don't have it explicitly in resourceApi for multipart yet.
-        await fetch(`http://localhost:8080/api/v1/facilities/${createdResource.id}/image`, {
+        await fetch(`http://localhost:8080/api/v1/resources/${createdResource.id}/image`, {
           method: 'POST',
           headers: {
             'Authorization': 'Basic ' + btoa('admin:admin')

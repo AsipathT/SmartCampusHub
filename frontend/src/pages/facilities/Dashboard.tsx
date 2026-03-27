@@ -76,21 +76,23 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-96">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-96 flex flex-col">
          <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-6">Resource Distribution</h4>
-         <ResponsiveContainer width="100%" height="85%">
-           <BarChart data={data}>
-             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-             <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 13 }} axisLine={false} tickLine={false} />
-             <YAxis tick={{ fill: '#64748b', fontSize: 13 }} axisLine={false} tickLine={false} />
-             <Tooltip 
-               cursor={{ fill: '#f8fafc' }}
-               contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-             />
-             <Bar dataKey="active" stackId="a" fill="#3b82f6" radius={[0, 0, 4, 4]} />
-             <Bar dataKey="maintenance" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
-           </BarChart>
-         </ResponsiveContainer>
+         <div className="flex-1 min-h-0 w-full">
+           <ResponsiveContainer width="100%" height="100%">
+             <BarChart data={data}>
+               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+               <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 13 }} axisLine={false} tickLine={false} />
+               <YAxis tick={{ fill: '#64748b', fontSize: 13 }} axisLine={false} tickLine={false} />
+               <Tooltip 
+                 cursor={{ fill: '#f8fafc' }}
+                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+               />
+               <Bar dataKey="active" stackId="a" fill="#3b82f6" radius={[0, 0, 4, 4]} />
+               <Bar dataKey="maintenance" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+             </BarChart>
+           </ResponsiveContainer>
+         </div>
       </div>
     </div>
   );
