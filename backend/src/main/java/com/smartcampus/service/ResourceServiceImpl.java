@@ -8,15 +8,23 @@ import com.smartcampus.model.enums.ResourceStatus;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.ResourceTypeRepository;
 import lombok.RequiredArgsConstructor;
+import com.smartcampus.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceServiceImpl implements ResourceService {
@@ -52,13 +60,15 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public ResourceDto getResourceById(Long id) {
+        log.info("Fetching resource with ID: {}", id);
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resource not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + id));
         return mapToDto(resource);
     }
 
     @Override
     public ResourceDto createResource(ResourceDto dto) {
+        log.info("Creating new resource: {}", dto.getName());
         ResourceType type = resourceTypeRepository.findByName(dto.getType())
                 .orElseGet(() -> {
                     ResourceType newType = new ResourceType();
@@ -85,8 +95,9 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public ResourceDto updateResource(Long id, ResourceDto dto) {
+        log.info("Updating resource ID: {}", id);
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resource not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + id));
 
         ResourceType type = resourceTypeRepository.findByName(dto.getType())
                 .orElseGet(() -> {
@@ -113,8 +124,9 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public void deleteResource(Long id) {
+        log.info("Soft-deleting resource ID: {}", id);
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resource not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + id));
         resource.setDeleted(true);
         resourceRepository.save(resource);
     }
@@ -132,5 +144,23 @@ public class ResourceServiceImpl implements ResourceService {
                 .availableFrom(resource.getAvailableFrom().toString())
                 .availableTo(resource.getAvailableTo().toString())
                 .build();
+    }
+
+    @Override
+    public String uploadImage(MultipartFile file) {
+        try {
+            String uploadDir = "uploads/resources";
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath);
+            return "http://localhost:8080/uploads/resources/" + fileName;
+        } catch (Exception e) {
+            log.error("Could not upload image", e);
+            throw new RuntimeException("Could not store image");
+        }
     }
 }

@@ -14,6 +14,7 @@ const mapTypeToFacilityType = (type: string): string => {
 const mapToResource = (facility: any): Resource => ({
   id: facility.id,
   name: facility.name,
+  description: facility.description,
   type: facility.type,
   capacity: facility.capacity,
   location: facility.location,
@@ -70,3 +71,13 @@ export const deleteResource = async (id: number | string): Promise<void> => {
   await api.delete(`/resources/${id}`);
 };
 
+export const uploadResourceImage = async (file: File): Promise<string> => {
+  const form = new FormData();
+  form.append('image', file);
+  const response = await api.post('/resources/upload', form, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data.imageUrl;
+};

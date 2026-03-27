@@ -9,12 +9,16 @@ import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import com.smartcampus.exception.BookingConflictException;
+import com.smartcampus.exception.ResourceNotFoundException;
+import com.smartcampus.exception.ValidationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -35,23 +39,26 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto createBooking(BookingDto dto) {
+        log.info("Creating booking for resourceId: {} by userId: {}", dto.getResourceId(), dto.getUserId());
         Resource resource = resourceRepository.findById(dto.getResourceId())
-                .orElseThrow(() -> new RuntimeException("Resource not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + dto.getResourceId()));
         
         Long userId = dto.getUserId() != null ? dto.getUserId() : 1L;
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
         LocalTime start = LocalTime.parse(dto.getStartTime());
         LocalTime end = LocalTime.parse(dto.getEndTime());
 
         if (start.isBefore(resource.getAvailableFrom()) || end.isAfter(resource.getAvailableTo())) {
-            throw new RuntimeException("Booking time falls outside of resource available hours");
+            log.warn("Booking time {} - {} outside available hours {} - {}", start, end, resource.getAvailableFrom(), resource.getAvailableTo());
+            throw new ValidationException("Booking time falls outside of resource available hours");
         }
 
         boolean isOverlapping = bookingRepository.existsOverlappingBooking(resource.getId(), dto.getBookingDate(), start, end);
         if (isOverlapping) {
-            throw new RuntimeException("Resource is already booked for the selected time slot");
+            log.warn("Overlapping booking requested for resourceId: {} on date: {}", resource.getId(), dto.getBookingDate());
+            throw new BookingConflictException("Resource is already booked for this time slot");
         }
 
         Booking booking = Booking.builder()
@@ -70,8 +77,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto updateBookingStatus(Long id, String status) {
+        log.info("Updating booking ID: {} to status: {}", id, status);
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + id));
         booking.setStatus(BookingStatus.valueOf(status.toUpperCase()));
         booking = bookingRepository.save(booking);
         return mapToDto(booking);

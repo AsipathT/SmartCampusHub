@@ -2,14 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getResourceById } from '../../api/resourceApi';
 import { Resource } from '../../types/resource';
-import { MapPin, Users, Clock, ArrowLeft, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { MapPin, Users, Clock, ArrowLeft, Image as ImageIcon, CheckCircle2, Calendar, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { createBooking } from '../../api/bookingApi';
 
 export const ResourceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Booking Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    bookingDate: '',
+    startTime: '',
+    endTime: '',
+    purpose: ''
+  });
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -63,7 +74,7 @@ export const ResourceDetails: React.FC = () => {
                <section>
                  <h3 className="text-xl font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Description & Notes</h3>
                  <p className="text-slate-600 leading-relaxed text-lg">
-                   The {resource.name} is a state-of-the-art facility located seamlessly within the {resource.location}. Designed to support the academic and extracurricular needs of the Smart Campus structure, it ensures high reliability and comfort for up to {resource.capacity} occupants.
+                   {resource.description || `The ${resource.name} is a state-of-the-art facility located seamlessly within the ${resource.location}. Designed to support the academic and extracurricular needs of the Smart Campus structure, it ensures high reliability and comfort for up to ${resource.capacity} occupants.`}
                  </p>
                </section>
              </div>
@@ -112,10 +123,75 @@ export const ResourceDetails: React.FC = () => {
                     {resource.status === 'ACTIVE' && <CheckCircle2 size={18} />} 
                     <span className="tracking-wide">SYSTEM {resource.status.replace(/_/g, ' ')}</span>
                  </div>
+                 
+                 {resource.status === 'ACTIVE' && (
+                    <button onClick={() => setShowModal(true)} className="mt-6 w-full py-4 rounded-xl bg-blue-600 text-white font-bold tracking-wide hover:bg-blue-700 transition-colors shadow-md flex justify-center items-center gap-2">
+                       <Calendar size={20} /> BOOK THIS RESOURCE
+                    </button>
+                 )}
                </div>
              </div>
           </div>
        </div>
+
+        {/* Booking Modal */}
+        {showModal && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+                 <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                    <h3 className="text-xl font-bold text-slate-800">Book {resource.name}</h3>
+                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                       <X size={24} />
+                    </button>
+                 </div>
+                 
+                 <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    setBookingLoading(true);
+                    try {
+                       // We assume userId is 1 for currently logged in demo user
+                       await createBooking({ ...bookingData, resourceId: resource.id, userId: 1 });
+                       toast.success('Booking requested successfully!');
+                       setShowModal(false);
+                       setBookingData({ bookingDate: '', startTime: '', endTime: '', purpose: ''});
+                    } catch (err: any) {
+                       toast.error(err.response?.data?.error || 'Failed to request booking');
+                    } finally {
+                       setBookingLoading(false);
+                    }
+                 }} className="p-6 space-y-4">
+                    <div>
+                       <label className="block text-sm font-semibold text-slate-700 mb-1">Date</label>
+                       <input type="date" required value={bookingData.bookingDate} onChange={e => setBookingData({...bookingData, bookingDate: e.target.value})} 
+                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                         <label className="block text-sm font-semibold text-slate-700 mb-1">Start Time</label>
+                         <input type="time" required value={bookingData.startTime} onChange={e => setBookingData({...bookingData, startTime: e.target.value})} 
+                           className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-semibold text-slate-700 mb-1">End Time</label>
+                         <input type="time" required value={bookingData.endTime} onChange={e => setBookingData({...bookingData, endTime: e.target.value})} 
+                           className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                       </div>
+                    </div>
+                    <div>
+                       <label className="block text-sm font-semibold text-slate-700 mb-1">Purpose</label>
+                       <textarea required rows={3} value={bookingData.purpose} onChange={e => setBookingData({...bookingData, purpose: e.target.value})} 
+                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Briefly describe the purpose of booking..."></textarea>
+                    </div>
+                    <div className="pt-4 flex justify-end gap-3">
+                       <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
+                       <button type="submit" disabled={bookingLoading} className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-semibold flex items-center gap-2 hover:bg-blue-700 disabled:opacity-70 transition-colors">
+                          {bookingLoading ? 'Submitting...' : 'Submit Request'}
+                       </button>
+                    </div>
+                 </form>
+              </div>
+           </div>
+        )}
     </div>
   );
 };

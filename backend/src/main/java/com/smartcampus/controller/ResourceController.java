@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/resources")
@@ -45,5 +46,10 @@ public class ResourceController {
     public ResponseEntity<Void> deleteResource(@PathVariable("id") Long id) {
         resourceService.deleteResource(id);
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/upload")
+    public ResponseEntity<java.util.Map<String, String>> uploadImage(@RequestParam("image") MultipartFile image) {
+        String imageUrl = resourceService.uploadImage(image);
+        return ResponseEntity.ok(java.util.Map.of("imageUrl", imageUrl));
     }
 }

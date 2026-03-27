@@ -10,11 +10,13 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', path: '/app/facilities/dashboard', icon: LayoutDashboard },
     { label: 'Resource List', path: '/app/facilities/resources', icon: Box, exact: true },
+    { label: 'My Bookings', path: '/app/facilities/bookings/my', icon: Box },
     { label: 'Add Resource', path: '/app/facilities/resources/add', icon: PlusCircle },
   ];
 
   if (isAdmin) {
     navItems.push({ label: 'Manage Resources', path: '/app/facilities/resources/manage', icon: Settings });
+    navItems.push({ label: 'Manage Bookings', path: '/app/facilities/bookings/manage', icon: Settings });
   }
 
   return (

@@ -1,6 +1,7 @@
 export interface Resource {
   id: number;
   name: string;
+  description?: string;
   type: string;
   capacity: number;
   location: string;
@@ -11,6 +12,7 @@ export interface Resource {
   imageUrl?: string;
   deleted?: boolean;
 }
+
 
 export interface PageResponse<T> {
   content: T[];
