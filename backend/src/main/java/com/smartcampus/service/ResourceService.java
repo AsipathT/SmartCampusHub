@@ -10,5 +10,6 @@ public interface ResourceService {
     ResourceDto createResource(ResourceDto resourceDto);
     ResourceDto updateResource(Long id, ResourceDto resourceDto);
     void deleteResource(Long id);
+    ResourceDto patchStatus(Long id, String status);
     String uploadImage(MultipartFile file);
 }

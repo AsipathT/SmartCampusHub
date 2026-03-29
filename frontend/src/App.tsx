@@ -13,8 +13,7 @@ import { ResourceList } from './pages/facilities/ResourceList';
 import { AddResource } from './pages/facilities/AddResource';
 import { EditResource } from './pages/facilities/EditResource';
 import { ManageResources } from './pages/facilities/ManageResources';
-import { MyBookings } from './pages/facilities/MyBookings';
-import { ManageBookings } from './pages/facilities/ManageBookings';
+
 import { ResourceDetails } from './pages/facilities/ResourceDetails';
 
 // Blank
@@ -42,15 +41,10 @@ const App: React.FC = () => {
               <Route path="facilities/dashboard" element={<Dashboard />} />
               <Route path="facilities/resources" element={<ResourceList />} />
               <Route path="facilities/resources/add" element={<AddResource />} />
-              <Route path="facilities/resources/manage" element={<ProtectedRoute requiredRole="ADMIN" />} >
-                 <Route index element={<ManageResources />} />
-                 <Route path="edit/:id" element={<EditResource />} />
-              </Route>
+              <Route path="facilities/resources/manage" element={<ManageResources />} />
+              <Route path="facilities/resources/manage/edit/:id" element={<EditResource />} />
               <Route path="facilities/resources/:id" element={<ResourceDetails />} />
-              <Route path="facilities/bookings/my" element={<MyBookings />} />
-              <Route path="facilities/bookings/manage" element={<ProtectedRoute requiredRole="ADMIN" />}>
-                 <Route index element={<ManageBookings />} />
-              </Route>
+
               
               {/* Other modules placeholders */}
             </Route>

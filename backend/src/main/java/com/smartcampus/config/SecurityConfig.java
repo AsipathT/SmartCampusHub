@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,16 +24,19 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(List.of("http://localhost:5173"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(false);
                 return config;
             }))
-            .csrf(csrf -> csrf.disable()) // Disabled for local development
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/resources/**", "/api/v1/resource-types/**", "/api/v1/bookings/**", "/api/v1/users/**").permitAll()
+                .requestMatchers("/api/v1/**", "/uploads/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic(basic -> {}); // Standard Basic Auth for simplicity
+            // Do NOT enable httpBasic — it causes the browser's native Sign-in popup
+            .httpBasic(basic -> basic.disable());
 
         return http.build();
     }

@@ -1,27 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { getResources } from '../../api/resourceApi';
-import { getAllBookings } from '../../api/bookingApi';
-import { Building2, AlertTriangle, CheckCircle2, Package, Calendar } from 'lucide-react';
+import { Building2, AlertTriangle, CheckCircle2, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, active: 0, maintenance: 0 });
-  const [chartData, setChartData] = useState<any[]>([]);
   const [distributionData, setDistributionData] = useState<any[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      getResources(0, 500),
-      getAllBookings().catch(() => []) 
-    ])
-    .then(([resourceData, bookingsData]) => {
+    getResources(0, 500)
+    .then((resourceData) => {
       const resources = resourceData.content || [];
-      
+
       // Calculate resource stats
       setStats({
-        total: resources.length, 
+        total: resources.length,
         active: resources.filter((r) => r.status === 'ACTIVE').length,
         maintenance: resources.filter((r) => r.status === 'MAINTENANCE' || r.status === 'OUT_OF_SERVICE').length,
       });
@@ -41,27 +36,6 @@ export const Dashboard: React.FC = () => {
          { name: 'Libraries', active: 0, maintenance: 0 },
          { name: 'Sports Complex', active: 0, maintenance: 0 }
       ]);
-
-
-      // Calculate bookings per day chart data
-      const bookingsByDate: Record<string, number> = {};
-      bookingsData.forEach(b => {
-         const date = b.bookingDate;
-         if (date) {
-            bookingsByDate[date] = (bookingsByDate[date] || 0) + 1;
-         }
-      });
-
-      const processedData = Object.entries(bookingsByDate)
-         .map(([date, count]) => ({ date, bookings: count }))
-         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-         .slice(-7); 
-
-      if (processedData.length === 0) {
-         setChartData([{ date: new Date().toISOString().split('T')[0], bookings: 0 }]);
-      } else {
-         setChartData(processedData);
-      }
     })
     .catch((err) => {
       console.error(err);
@@ -111,11 +85,11 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         {/* Chart 1: Distribution */}
+      <div className="grid grid-cols-1 gap-6">
+         {/* Chart: Distribution */}
          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-96 flex flex-col">
             <h4 className="text-sm flex items-center gap-2 font-bold text-slate-700 uppercase tracking-wide mb-6">
-               <Building2 size={16} className="text-slate-400" /> Resource Distribution
+               <Building2 size={16} className="text-slate-400" /> Resource Distribution by Type
             </h4>
             <div className="flex-1 min-h-0 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -127,25 +101,6 @@ export const Dashboard: React.FC = () => {
                   <Legend wrapperStyle={{ paddingTop: '10px' }} />
                   <Bar name="Active" dataKey="active" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} />
                   <Bar name="Maintenance" dataKey="maintenance" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-         </div>
-
-         {/* Chart 2: Bookings per Day */}
-         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-96 flex flex-col">
-            <h4 className="text-sm flex items-center gap-2 font-bold text-slate-700 uppercase tracking-wide mb-6">
-               <Calendar size={16} className="text-slate-400" /> Bookings per Day (Last 7 Days)
-            </h4>
-            <div className="flex-1 min-h-0 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 13 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 13 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                  <Bar name="Number of Bookings" dataKey="bookings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

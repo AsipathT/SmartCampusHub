@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Building2, PlusCircle, Settings, Box, ChevronDown } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+
 
 export const Sidebar: React.FC = () => {
-  const { isAdmin } = useAuth();
+
   const [facilitiesOpen, setFacilitiesOpen] = useState(true);
 
   const navItems = [
     { label: 'Dashboard', path: '/app/facilities/dashboard', icon: LayoutDashboard },
     { label: 'Resource List', path: '/app/facilities/resources', icon: Box, exact: true },
-    { label: 'My Bookings', path: '/app/facilities/bookings/my', icon: Box },
     { label: 'Add Resource', path: '/app/facilities/resources/add', icon: PlusCircle },
+    { label: 'Manage Resources', path: '/app/facilities/resources/manage', icon: Settings },
   ];
-
-  if (isAdmin) {
-    navItems.push({ label: 'Manage Resources', path: '/app/facilities/resources/manage', icon: Settings });
-    navItems.push({ label: 'Manage Bookings', path: '/app/facilities/bookings/manage', icon: Settings });
-  }
 
   return (
     <aside className="w-72 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col h-full shadow-xl z-20 transition-all fixed pt-16 mt-0.5 md:pt-0 md:mt-0 md:relative">

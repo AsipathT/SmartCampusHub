@@ -7,14 +7,26 @@ const api = axios.create({
   },
 });
 
-// Interceptor to attach auth token
+// Attach JWT Bearer token from localStorage on every request
 api.interceptors.request.use((config) => {
-  // Match Spring Security httpBasic by using basic auth credentials admin:admin
-  const basicAuthToken = btoa('admin:admin');
-  if (config.headers) {
-    config.headers.Authorization = `Basic ${basicAuthToken}`;
+  const token = localStorage.getItem('token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 }, (error) => Promise.reject(error));
+
+// On 401, clear stale session and redirect to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

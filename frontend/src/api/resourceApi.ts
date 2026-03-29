@@ -44,24 +44,27 @@ export const getResourceById = async (id: number | string): Promise<Resource> =>
 };
 
 export const createResource = async (resource: Partial<Resource>): Promise<Resource> => {
-  const times = resource.availabilityTime ? resource.availabilityTime.split(' - ') : ['08:00', '20:00'];
+  // Prefer direct availableFrom/availableTo; fall back to splitting availabilityTime
+  const from = resource.availableFrom ?? (resource.availabilityTime?.split(' - ')[0]?.trim() ?? '08:00');
+  const to   = resource.availableTo   ?? (resource.availabilityTime?.split(' - ')[1]?.trim() ?? '20:00');
   const facilityData = {
     ...resource,
     type: resource.type ? mapTypeToFacilityType(resource.type) : 'OTHERS',
-    availableFrom: times[0].trim(),
-    availableTo: times[1].trim(),
+    availableFrom: from,
+    availableTo: to,
   };
   const response = await api.post('/resources', facilityData);
   return mapToResource(response.data);
 };
 
 export const updateResource = async (id: number | string, resource: Partial<Resource>): Promise<Resource> => {
-  const times = resource.availabilityTime ? resource.availabilityTime.split(' - ') : ['08:00', '20:00'];
+  const from = resource.availableFrom ?? (resource.availabilityTime?.split(' - ')[0]?.trim() ?? '08:00');
+  const to   = resource.availableTo   ?? (resource.availabilityTime?.split(' - ')[1]?.trim() ?? '20:00');
   const facilityData = {
     ...resource,
     type: resource.type ? mapTypeToFacilityType(resource.type) : 'OTHERS',
-    availableFrom: times[0].trim(),
-    availableTo: times[1].trim(),
+    availableFrom: from,
+    availableTo: to,
   };
   const response = await api.put(`/resources/${id}`, facilityData);
   return mapToResource(response.data);
@@ -69,6 +72,11 @@ export const updateResource = async (id: number | string, resource: Partial<Reso
 
 export const deleteResource = async (id: number | string): Promise<void> => {
   await api.delete(`/resources/${id}`);
+};
+
+export const patchResourceStatus = async (id: number | string, status: string): Promise<Resource> => {
+  const response = await api.patch(`/resources/${id}/status`, { status });
+  return mapToResource(response.data);
 };
 
 export const uploadResourceImage = async (file: File): Promise<string> => {
