@@ -1,7 +1,6 @@
 package com.smartcampus.repository;
 
 import com.smartcampus.model.entity.Booking;
-import com.smartcampus.model.entity.Resource;
 import com.smartcampus.model.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
