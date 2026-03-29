@@ -29,11 +29,13 @@ import { IncidentTickets } from './pages/user/IncidentTickets';
 import { ReportIncident } from './pages/user/ReportIncident';
 import { IncidentTicketDetails } from './pages/user/IncidentTicketDetails';
 import { StudentNotifications } from './pages/user/StudentNotifications';
+import { AddBooking } from './pages/bookings/AddBooking';
+import { BookingDashboard } from './pages/bookings/BookingDashboard';
+import { ManageBookings as BookingManage } from './pages/bookings/ManageBookings';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      {/* AuthProvider wraps everything to provide authentication context */}
       <AuthProvider>
         {/* Global Toast Notifications */}
         <Toaster
@@ -72,12 +74,15 @@ const App: React.FC = () => {
                 <Route path="admin/incidents/map" element={<IncidentMap />} />
                 <Route path="admin/incidents/notifications" element={<AdminNotifications />} />
                 <Route path="admin/incidents/:id" element={<AdminTicketDetails />} />
+                <Route path="bookings/manage" element={<BookingManage />} />
               </Route>
 
               {/* ── Shared Routes (ADMIN + USER) ──────────────────────────── */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'USER']} />}>
                 <Route path="facilities/resources/:id" element={<ResourceDetails />} />
                 <Route path="profile" element={<UserProfile />} />
+                <Route path="bookings/dashboard" element={<BookingDashboard />} />
+                <Route path="bookings/add" element={<AddBooking />} />
               </Route>
 
               {/* ── USER Routes (USER only, ADMIN can also access via bypass) */}

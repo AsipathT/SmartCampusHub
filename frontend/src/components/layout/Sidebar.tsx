@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, User as UserIcon, Bell } from 'lucide-react';
+import { ChevronDown, LogOut, User as UserIcon, Bell, CalendarDays, PlusCircle, LayoutDashboard, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUnreadCount } from '../../api/notificationApi';
 import { getNavConfig, NavGroup } from '../../config/navigation';
@@ -37,7 +37,6 @@ const SidebarGroup: React.FC<{ group: NavGroup }> = ({ group }) => {
   useEffect(() => {
     if (isAnyActive) setOpen(true);
   }, [isAnyActive]);
-
   return (
     <div className="space-y-1">
       {/* Group Toggle Header */}
@@ -100,6 +99,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
   const { user, logout } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const navigate = useNavigate();
   const navConfig = getNavConfig(user?.role as UserRole);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -117,6 +117,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
     toast.success('Signed out successfully');
     navigate('/login');
   };
+
+  const bookingModuleItems = [
+    { id: 'booking-dashboard', label: 'Booking Dashboard', path: '/app/bookings/dashboard', icon: LayoutDashboard },
+    { id: 'booking-add', label: 'Add Booking', path: '/app/bookings/add', icon: PlusCircle },
+    ...(isAdmin ? [{ id: 'booking-manage', label: 'Manage Bookings', path: '/app/bookings/manage', icon: Settings }] : []),
+  ];
 
   const sidebarContent = (
     <aside className="w-72 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col h-full shadow-2xl z-20">
@@ -182,6 +188,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
               <SidebarGroup key={group.id} group={group} />
             ))}
           </div>
+        </div>
+
+        <div className="px-2">
+          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-3">
+            Booking Module
+          </p>
+          <nav className="space-y-1">
+            {bookingModuleItems.map((item) => (
+              <NavLink
+                key={item.id}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative ${
+                    isActive
+                      ? 'bg-blue-600/10 text-blue-400 before:absolute before:left-[-9px] before:w-2 before:h-2 before:bg-blue-500 before:rounded-full'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  }`
+                }
+              >
+                <item.icon size={15} className="flex-shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
       </div>
 
