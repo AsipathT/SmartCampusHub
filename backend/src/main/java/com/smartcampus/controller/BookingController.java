@@ -24,7 +24,7 @@ public class BookingController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingDto>> getUserBookings(@PathVariable("userId") Long userId) {
+    public ResponseEntity<List<BookingDto>> getUserBookings(@PathVariable Long userId) {
         return ResponseEntity.ok(bookingService.getUserBookings(userId));
     }
 
@@ -34,12 +34,21 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<BookingDto> updateBookingStatus(@PathVariable("id") Long id, @RequestParam("status") String status) {
-        return ResponseEntity.ok(bookingService.updateBookingStatus(id, status));
+    public ResponseEntity<BookingDto> updateBookingStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            @RequestParam(required = false) String reason
+    ) {
+        return ResponseEntity.ok(bookingService.updateBookingStatus(id, status, reason));
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<BookingDto> cancelBooking(@PathVariable Long id) {
+        return ResponseEntity.ok(bookingService.cancelBooking(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }

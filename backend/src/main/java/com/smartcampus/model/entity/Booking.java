@@ -18,6 +18,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class Booking {
     
     @Id
@@ -54,4 +55,7 @@ public class Booking {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
 }

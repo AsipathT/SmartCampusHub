@@ -19,6 +19,7 @@ import { ResourceDetails } from './pages/facilities/ResourceDetails';
 import { AddBooking } from './pages/bookings/AddBooking';
 import { BookingDashboard } from './pages/bookings/BookingDashboard';
 import { ManageBookings as BookingManage } from './pages/bookings/ManageBookings';
+import { MyBookings as BookingMyBookings } from './pages/bookings/MyBookings';
 
 const App: React.FC = () => {
   return (
@@ -50,7 +51,7 @@ const App: React.FC = () => {
               {/* Your separate Booking module */}
               <Route path="bookings/dashboard" element={<BookingDashboard />} />
               <Route path="bookings/add" element={<AddBooking />} />
-              <Route path="bookings/my" element={<MyBookings />} />
+              <Route path="bookings/my" element={<BookingMyBookings />} />
              <Route path="bookings/manage" element={<BookingManage />} />
             </Route>
           </Route>

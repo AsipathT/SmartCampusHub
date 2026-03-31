@@ -36,4 +36,6 @@ public class BookingDto {
     private String status;
 
     private String purpose;
+
+    private String rejectionReason;
 }

@@ -11,6 +11,7 @@ export interface Booking {
   endTime: string;
   status?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   purpose?: string;
+  rejectionReason?: string;
 }
 
 export const createBooking = async (booking: Booking): Promise<Booking> => {
@@ -28,15 +29,22 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   return response.data;
 };
 
-export const updateBookingStatus = async (id: number, status: string): Promise<Booking> => {
+export const updateBookingStatus = async (
+  id: number,
+  status: string,
+  reason?: string
+): Promise<Booking> => {
   const response = await api.put(`/bookings/${id}/status`, null, {
-    params: { status }
+    params: { status, reason }
   });
   return response.data;
 };
 
-export const cancelBooking = async (id: number): Promise<void> => {
-  // We can just use updateBookingStatus to CANCELLED or DELETE
-  // If the backend has delete, we use delete
+export const cancelBooking = async (id: number): Promise<Booking> => {
+  const response = await api.put(`/bookings/${id}/cancel`);
+  return response.data;
+};
+
+export const deleteBooking = async (id: number): Promise<void> => {
   await api.delete(`/bookings/${id}`);
 };

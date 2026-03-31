@@ -7,6 +7,7 @@ public interface BookingService {
     List<BookingDto> getAllBookings();
     List<BookingDto> getUserBookings(Long userId);
     BookingDto createBooking(BookingDto bookingDto);
-    BookingDto updateBookingStatus(Long id, String status);
+    BookingDto updateBookingStatus(Long id, String status, String reason);
+    BookingDto cancelBooking(Long id);
     void deleteBooking(Long id);
 }
