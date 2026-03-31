@@ -32,6 +32,7 @@ import { StudentNotifications } from './pages/user/StudentNotifications';
 import { AddBooking } from './pages/bookings/AddBooking';
 import { BookingDashboard } from './pages/bookings/BookingDashboard';
 import { ManageBookings as BookingManage } from './pages/bookings/ManageBookings';
+import { MyBookings as BookingMyBookings } from './pages/bookings/MyBookings';
 
 const App: React.FC = () => {
   return (
@@ -83,6 +84,7 @@ const App: React.FC = () => {
                 <Route path="profile" element={<UserProfile />} />
                 <Route path="bookings/dashboard" element={<BookingDashboard />} />
                 <Route path="bookings/add" element={<AddBooking />} />
+                <Route path="bookings/my" element={<BookingMyBookings />} />
               </Route>
 
               {/* ── USER Routes (USER only, ADMIN can also access via bypass) */}
