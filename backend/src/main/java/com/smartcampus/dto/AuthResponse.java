@@ -9,8 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardDto {
-    private long totalResources;
-    private long activeResources;
-    private long inactiveResources;
+public class AuthResponse {
+    private String token;
+    private String id;
+    private String fullName;
+    private String email;
+    private String role;
+    private String message;
 }

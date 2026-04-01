@@ -42,6 +42,14 @@ public class ResourceController {
         return ResponseEntity.ok(resourceService.updateResource(id, dto));
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ResourceDto> patchResourceStatus(
+            @PathVariable("id") Long id,
+            @RequestBody java.util.Map<String, String> body) {
+        String status = body.get("status");
+        return ResponseEntity.ok(resourceService.patchStatus(id, status));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteResource(@PathVariable("id") Long id) {
         resourceService.deleteResource(id);

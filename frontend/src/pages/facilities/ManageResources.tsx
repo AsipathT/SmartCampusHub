@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getResources, deleteResource, updateResource } from '../../api/resourceApi';
+import { getResources, deleteResource, patchResourceStatus } from '../../api/resourceApi';
 import { Resource } from '../../types/resource';
 import { Edit2, Trash2, ShieldAlert, Search, Filter, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -39,10 +39,16 @@ export const ManageResources: React.FC = () => {
     }
   };
 
+  const cycleStatus = (current: Resource['status']): Resource['status'] => {
+    if (current === 'ACTIVE') return 'MAINTENANCE';
+    if (current === 'MAINTENANCE') return 'OUT_OF_SERVICE';
+    return 'ACTIVE';
+  };
+
   const handleToggleStatus = async (resource: Resource) => {
-    const newStatus = resource.status === 'ACTIVE' ? 'OUT_OF_SERVICE' : 'ACTIVE';
+    const newStatus = cycleStatus(resource.status);
     try {
-      await updateResource(resource.id, { status: newStatus });
+      await patchResourceStatus(resource.id, newStatus);
       toast.success(`Status updated to ${newStatus}`);
       fetchData();
     } catch (err) {
@@ -125,10 +131,18 @@ export const ManageResources: React.FC = () => {
                   <div className="text-xs text-slate-500">{res.location}</div>
                 </td>
                 <td className="py-4 px-6">
-                  <button onClick={() => handleToggleStatus(res)} className={`text-xs px-3 py-1.5 rounded-full font-bold transition-all border shadow-sm ${
-                    res.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200'
-                  }`}>
-                    {res.status} (Click to toggle)
+                  <button
+                    onClick={() => handleToggleStatus(res)}
+                    title="Click to cycle: ACTIVE → MAINTENANCE → OUT_OF_SERVICE"
+                    className={`text-xs px-3 py-1.5 rounded-full font-bold transition-all border shadow-sm ${
+                      res.status === 'ACTIVE'
+                        ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
+                        : res.status === 'MAINTENANCE'
+                        ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
+                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200'
+                    }`}
+                  >
+                    {res.status === 'ACTIVE' ? '✅ ACTIVE' : res.status === 'MAINTENANCE' ? '🔧 MAINTENANCE' : '🚫 OUT_OF_SERVICE'}
                   </button>
                 </td>
                 <td className="py-4 px-6 text-right">
