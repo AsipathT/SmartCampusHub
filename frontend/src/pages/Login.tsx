@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, User } from '../contexts/AuthContext';
+import { useAuth, User, UserRole } from '../contexts/AuthContext';
 import { Building2, Lock, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getNavConfig } from '../config/navigation';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,23 +18,26 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      // Simulate API Call
+      // Simulate API Call — replace with real API call when backend auth is ready
       await new Promise((resume) => setTimeout(resume, 800));
 
       if (email && password) {
         const mockUser: User = {
-          id: 'usr-1234',
+          id: role === 'ADMIN' ? 'admin-001' : 'usr-1234',
           name: email.split('@')[0],
           email: email,
-          role: role,
+          role: role as UserRole,
         };
-        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Dummy token
-        
+        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock'; // Dummy token
+
         login(mockUser, mockToken);
-        toast.success(`Welcome back, ${mockUser.name}!`);
-        navigate('/app/facilities/dashboard');
+        toast.success(`Welcome back, ${mockUser.name}! 👋`);
+
+        // ── Role-aware redirect using centralized nav config ──────────────
+        const navConfig = getNavConfig(mockUser.role);
+        navigate(navConfig.defaultRoute, { replace: true });
       } else {
-        toast.error('Invalid credentials. Please enter email and password.');
+        toast.error('Please enter your email and password.');
       }
     } catch (err) {
       toast.error('An error occurred during authentication.');
