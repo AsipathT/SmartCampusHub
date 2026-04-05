@@ -102,12 +102,23 @@ const BrowseCard: React.FC<{ resource: Resource }> = ({ resource }) => {
           )}
         </div>
 
-        <Link
-          to={`/app/facilities/resources/${resource.id}`}
-          className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-xs transition-colors"
-        >
-          View Details <ChevronRight size={13} />
-        </Link>
+        <div className="mt-3 grid grid-cols-2 gap-2 w-full">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              toast.success('Room booking features coming soon!');
+            }}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors shadow-sm"
+          >
+            Book Now
+          </button>
+          <Link
+            to={`/app/facilities/resources/${resource.id}`}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-xs transition-colors"
+          >
+            Details <ChevronRight size={13} />
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -161,20 +172,40 @@ export const BrowseResources: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
-      <div
-        className="relative w-full py-10 px-8 overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)' }}
-      >
-        {/* Blob decoration */}
-        <div className="absolute right-10 top-2 w-48 h-48 rounded-full opacity-20 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #a78bfa, transparent)' }} />
+      <div className="relative w-full py-10 px-8 overflow-hidden min-h-[260px] flex flex-col justify-end">
+        <img
+          src="/sliit_campus.png"
+          alt="SLIIT Campus"
+          className="absolute inset-0 w-full h-full object-cover object-center z-0"
+          style={{ filter: 'brightness(0.55)' }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(79,70,229,0.85) 0%, rgba(15,23,42,0.8) 60%, rgba(15,23,42,0.95) 100%)',
+          }}
+        />
 
-        <div className="max-w-7xl mx-auto">
-          <p className="text-indigo-300 text-xs font-bold uppercase tracking-widest mb-2">
+        {/* Blob decoration */}
+        <div className="absolute right-10 top-2 w-48 h-48 rounded-full opacity-20 blur-3xl z-10"
+          style={{ background: 'radial-gradient(circle, #a78bfa, transparent)' }} />
+          
+        <div className="absolute -bottom-8 left-20 w-40 h-40 rounded-full opacity-25 blur-3xl z-10"
+          style={{ background: 'radial-gradient(circle, #34d399, transparent)' }} />
+
+        <div className="max-w-7xl mx-auto w-full relative z-20">
+          <p className="text-indigo-300 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
+           <span className="w-6 h-6 rounded-md bg-indigo-500/30 flex items-center justify-center border border-indigo-400/30">
+              <Building2 size={12} className="text-indigo-300" />
+           </span>
             Facilities & Resources
           </p>
           <h1 className="text-3xl font-black text-white tracking-tight">Browse Campus Facilities</h1>
-          <p className="text-indigo-200 mt-1 text-sm max-w-lg">
+          <p className="text-indigo-200 mt-1 text-sm max-w-lg mb-2">
             Discover {resources.length} resources across SLIIT's campus.
           </p>
 
