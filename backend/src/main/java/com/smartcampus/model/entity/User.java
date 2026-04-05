@@ -23,6 +23,9 @@ public class User {
     @Column(nullable = true, length = 100)
     private String fullName;
 
+    @Column(nullable = true, length = 1000)
+    private String profileImage;
+
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 

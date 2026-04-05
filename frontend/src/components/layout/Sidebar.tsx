@@ -132,13 +132,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
       </div>
 
       {/* ── User Profile Strip ────────────────────────────────────────────── */}
-      <div className="px-4 py-4 border-b border-slate-800 bg-slate-950/30 flex-shrink-0">
+      <div 
+        onClick={() => navigate('/app/profile')}
+        className="px-4 py-4 border-b border-slate-800 bg-slate-950/30 flex-shrink-0 cursor-pointer hover:bg-slate-800/40 transition-colors group"
+      >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 border border-slate-600">
-            <UserIcon size={16} className="text-slate-300" />
-          </div>
+          {user?.profileImage ? (
+            <img src={user.profileImage} alt={user.name || 'User'} className="w-9 h-9 rounded-xl object-cover flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md" />
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md">
+              <UserIcon size={16} className="text-slate-300 group-hover:text-indigo-300 transition-colors" />
+            </div>
+          )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-white truncate">{user?.name || 'Guest'}</p>
+            <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">{user?.name || 'Guest'}</p>
             <p className="text-xs text-slate-500 truncate">{user?.email}</p>
           </div>
           <RoleBadge role={(user?.role || 'USER') as UserRole} />

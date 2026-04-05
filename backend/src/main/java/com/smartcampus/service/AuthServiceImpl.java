@@ -69,6 +69,7 @@ public class AuthServiceImpl implements AuthService {
                 .token(token)
                 .id(String.valueOf(saved.getId()))
                 .fullName(saved.getFullName())
+                .profileImage(saved.getProfileImage())
                 .email(saved.getEmail())
                 .role(saved.getRole())
                 .message("Registration successful! Welcome to Smart Campus Hub.")
@@ -102,9 +103,39 @@ public class AuthServiceImpl implements AuthService {
                 .token(token)
                 .id(String.valueOf(user.getId()))
                 .fullName(user.getFullName())
+                .profileImage(user.getProfileImage())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .message("Welcome back, " + user.getFullName() + "! You have successfully logged into Smart Campus Hub.")
+                .build();
+    }
+
+    // ── UPDATE PROFILE ─────────────────────────────────────────────────────────
+    @Override
+    public AuthResponse updateProfile(Long userId, String fullName, String profileImage) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean updated = false;
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            user.setFullName(fullName.trim());
+            updated = true;
+        }
+        if (profileImage != null && !profileImage.trim().isEmpty()) {
+            user.setProfileImage(profileImage.trim());
+            updated = true;
+        }
+
+        User saved = updated ? userRepository.save(user) : user;
+
+        return AuthResponse.builder()
+                .token("") // keep existing token on frontend
+                .id(String.valueOf(saved.getId()))
+                .fullName(saved.getFullName())
+                .profileImage(saved.getProfileImage())
+                .email(saved.getEmail())
+                .role(saved.getRole())
+                .message("Profile updated successfully")
                 .build();
     }
 }

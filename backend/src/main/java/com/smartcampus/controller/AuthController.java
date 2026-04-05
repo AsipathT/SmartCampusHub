@@ -48,4 +48,18 @@ public class AuthController {
         boolean exists = authService.emailExists(email);
         return ResponseEntity.ok(Map.of("exists", exists));
     }
+
+    /**
+     * PUT /api/v1/auth/profile/{id}
+     * Update user profile information.
+     */
+    @PutMapping("/profile/{id}")
+    public ResponseEntity<AuthResponse> updateProfile(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        String fullName = request.get("fullName");
+        String profileImage = request.get("profileImage");
+        AuthResponse response = authService.updateProfile(id, fullName, profileImage);
+        return ResponseEntity.ok(response);
+    }
 }

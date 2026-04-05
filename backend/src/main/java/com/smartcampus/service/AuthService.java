@@ -8,4 +8,5 @@ public interface AuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
     boolean emailExists(String email);
+    AuthResponse updateProfile(Long userId, String fullName, String profileImage);
 }
