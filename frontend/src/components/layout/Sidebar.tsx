@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
+import { ChevronDown, LogOut, User as UserIcon, Bell } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUnreadCount } from '../../api/notificationApi';
 import { getNavConfig, NavGroup } from '../../config/navigation';
 import { UserRole } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -101,6 +102,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const navConfig = getNavConfig(user?.role as UserRole);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      getUnreadCount(user.id)
+        .then(setUnreadCount)
+        .catch(() => console.error("Failed to fetch unread notifications"));
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -148,7 +158,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
             <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">{user?.name || 'Guest'}</p>
             <p className="text-xs text-slate-500 truncate">{user?.email}</p>
           </div>
-          <RoleBadge role={(user?.role || 'USER') as UserRole} />
+          <div className="flex flex-col items-end gap-1.5">
+            <RoleBadge role={(user?.role || 'USER') as UserRole} />
+            {unreadCount > 0 && (
+              <div className="flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 shadow-sm animate-pulse">
+                <Bell size={10} />
+                <span>{unreadCount}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

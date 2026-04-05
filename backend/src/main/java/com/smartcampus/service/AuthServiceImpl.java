@@ -5,6 +5,7 @@ import com.smartcampus.dto.LoginRequest;
 import com.smartcampus.dto.RegisterRequest;
 import com.smartcampus.model.entity.User;
 import com.smartcampus.repository.UserRepository;
+import com.smartcampus.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
 
     // ── REGISTER ──────────────────────────────────────────────────────────────
     @Override
@@ -127,6 +129,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User saved = updated ? userRepository.save(user) : user;
+
+        if (updated) {
+            notificationService.createAsyncNotification(
+                saved.getId(), 
+                "You recently updated your profile details.", 
+                "PROFILE"
+            );
+        }
 
         return AuthResponse.builder()
                 .token("") // keep existing token on frontend
