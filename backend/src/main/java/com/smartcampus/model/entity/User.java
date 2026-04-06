@@ -15,17 +15,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = true, length = 100)
+    private String fullName;
+
+    @Column(nullable = true, length = 1000)
+    private String profileImage;
+
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Column(nullable = false, length = 20)

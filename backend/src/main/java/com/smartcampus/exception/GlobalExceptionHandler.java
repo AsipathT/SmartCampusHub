@@ -22,13 +22,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(BookingConflictException.class)
-    public ResponseEntity<Map<String, String>> handleBookingConflict(BookingConflictException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler({ValidationException.class, RuntimeException.class})
-    public ResponseEntity<Map<String, String>> handleValidationException(Exception ex) {
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Map<String, String>> handleValidationException(ValidationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
     }
 

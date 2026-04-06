@@ -6,58 +6,72 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 
-// Facilities pages
-import { Dashboard } from './pages/facilities/Dashboard';
+// Admin
+import { Dashboard as AdminDashboard } from './pages/facilities/Dashboard';
 import { ResourceList } from './pages/facilities/ResourceList';
 import { AddResource } from './pages/facilities/AddResource';
 import { EditResource } from './pages/facilities/EditResource';
 import { ManageResources } from './pages/facilities/ManageResources';
-import { MyBookings } from './pages/facilities/MyBookings';
-import { ManageBookings } from './pages/facilities/ManageBookings';
 import { ResourceDetails } from './pages/facilities/ResourceDetails';
-import { AddBooking } from './pages/bookings/AddBooking';
-import { BookingDashboard } from './pages/bookings/BookingDashboard';
-import { ManageBookings as BookingManage } from './pages/bookings/ManageBookings';
-import { MyBookings as BookingMyBookings } from './pages/bookings/MyBookings';
+
+// User
+import { UserDashboard } from './pages/user/UserDashboard';
+import { BrowseResources } from './pages/user/BrowseResources';
+import { UserProfile } from './pages/user/UserProfile';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Toaster position="top-right" toastOptions={{ className: 'text-sm font-medium', duration: 3000 }} />
+
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            className: 'text-sm font-medium',
+            duration: 3000,
+          }}
+        />
 
         <Routes>
+          {/* Public */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
+          {/* Protected */}
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<MainLayout />}>
-              <Route index element={<Navigate to="/app/facilities/dashboard" replace />} />
 
-              {/* Facilities */}
-              <Route path="facilities/dashboard" element={<Dashboard />} />
-              <Route path="facilities/resources" element={<ResourceList />} />
-              <Route path="facilities/resources/add" element={<AddResource />} />
-              <Route path="facilities/resources/manage" element={<ProtectedRoute requiredRole="ADMIN" />}>
-                <Route index element={<ManageResources />} />
-                <Route path="edit/:id" element={<EditResource />} />
-              </Route>
-              <Route path="facilities/resources/:id" element={<ResourceDetails />} />
-              <Route path="facilities/bookings/my" element={<MyBookings />} />
-              <Route path="facilities/bookings/manage" element={<ProtectedRoute requiredRole="ADMIN" />}>
-                <Route index element={<ManageBookings />} />
+              <Route index element={<Navigate to="/app/admin/dashboard" replace />} />
+
+              {/* ADMIN */}
+              <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                <Route path="admin/dashboard" element={<AdminDashboard />} />
+                <Route path="facilities/resources" element={<ResourceList />} />
+                <Route path="facilities/resources/add" element={<AddResource />} />
+                <Route path="facilities/resources/manage" element={<ManageResources />} />
+                <Route path="facilities/resources/manage/edit/:id" element={<EditResource />} />
               </Route>
 
-              {/* Your separate Booking module */}
-              <Route path="bookings/dashboard" element={<BookingDashboard />} />
-              <Route path="bookings/add" element={<AddBooking />} />
-              <Route path="bookings/my" element={<BookingMyBookings />} />
-             <Route path="bookings/manage" element={<BookingManage />} />
+              {/* SHARED */}
+              <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'USER']} />}>
+                <Route path="facilities/resources/:id" element={<ResourceDetails />} />
+                <Route path="profile" element={<UserProfile />} />
+              </Route>
+
+              {/* USER */}
+              <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>
+                <Route path="user/dashboard" element={<UserDashboard />} />
+                <Route path="user/browse" element={<BrowseResources />} />
+              </Route>
+
             </Route>
           </Route>
 
-          <Route path="*" element={<Navigate to="/app/facilities/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+
       </AuthProvider>
     </BrowserRouter>
   );

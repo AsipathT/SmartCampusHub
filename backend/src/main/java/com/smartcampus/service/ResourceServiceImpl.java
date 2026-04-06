@@ -131,6 +131,20 @@ public class ResourceServiceImpl implements ResourceService {
         resourceRepository.save(resource);
     }
 
+    @Override
+    public ResourceDto patchStatus(Long id, String status) {
+        log.info("Patching status of resource ID: {} to {}", id, status);
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + id));
+        try {
+            resource.setStatus(ResourceStatus.valueOf(status));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
+        resource = resourceRepository.save(resource);
+        return mapToDto(resource);
+    }
+
     private ResourceDto mapToDto(Resource resource) {
         return ResourceDto.builder()
                 .id(resource.getId())
