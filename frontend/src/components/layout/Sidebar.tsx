@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
+import { ChevronDown, LogOut, User as UserIcon, Bell } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUnreadCount } from '../../api/notificationApi';
 import { getNavConfig, NavGroup } from '../../config/navigation';
 import { UserRole } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -101,6 +102,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const navConfig = getNavConfig(user?.role as UserRole);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      getUnreadCount(user.id)
+        .then(setUnreadCount)
+        .catch(() => console.error("Failed to fetch unread notifications"));
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -132,16 +142,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
       </div>
 
       {/* ── User Profile Strip ────────────────────────────────────────────── */}
-      <div className="px-4 py-4 border-b border-slate-800 bg-slate-950/30 flex-shrink-0">
+      <div 
+        onClick={() => navigate('/app/profile')}
+        className="px-4 py-4 border-b border-slate-800 bg-slate-950/30 flex-shrink-0 cursor-pointer hover:bg-slate-800/40 transition-colors group"
+      >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 border border-slate-600">
-            <UserIcon size={16} className="text-slate-300" />
-          </div>
+          {user?.profileImage ? (
+            <img src={user.profileImage} alt={user.name || 'User'} className="w-9 h-9 rounded-xl object-cover flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md" />
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md">
+              <UserIcon size={16} className="text-slate-300 group-hover:text-indigo-300 transition-colors" />
+            </div>
+          )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-white truncate">{user?.name || 'Guest'}</p>
+            <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">{user?.name || 'Guest'}</p>
             <p className="text-xs text-slate-500 truncate">{user?.email}</p>
           </div>
-          <RoleBadge role={(user?.role || 'USER') as UserRole} />
+          <div className="flex flex-col items-end gap-1.5">
+            <RoleBadge role={(user?.role || 'USER') as UserRole} />
+            {unreadCount > 0 && (
+              <div className="flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 shadow-sm animate-pulse">
+                <Bell size={10} />
+                <span>{unreadCount}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -92,46 +92,66 @@ const QuickAction: React.FC<{
 );
 
 // ── Resource Card ─────────────────────────────────────────────────────────────
-const ResourceCard: React.FC<{ resource: Resource }> = ({ resource }) => {
+const ResourceCard: React.FC<{ resource: Resource; index: number }> = ({ resource, index }) => {
   const colors = getStatusColor(resource.status);
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-          <Building2 size={18} className="text-indigo-500" />
-        </div>
+    <div 
+      className="bg-white rounded-3xl border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col relative animate-fade-in-up cursor-pointer"
+      style={{ animationFillMode: 'both', animationDelay: `${index * 120}ms` }}
+    >
+      {/* Decorative Top Banner */}
+      <div className="h-24 w-full relative bg-indigo-50 flex items-center justify-center overflow-hidden">
+        {resource.imageUrl ? (
+          <img src={resource.imageUrl} alt={resource.name} className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700" />
+        ) : (
+          <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity duration-300" 
+               style={{ background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)' }} />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent opacity-60" />
+        
+        {/* Status Badge */}
         <span
-          className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full"
-          style={{ background: colors.bg, color: colors.text }}
+          className="absolute top-3 right-3 flex items-center gap-1.5 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md bg-white/95 uppercase tracking-wide"
+          style={{ color: colors.text }}
         >
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: colors.dot }} />
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: colors.dot }} />
           {resource.status?.replace(/_/g, ' ')}
         </span>
       </div>
-      <h3 className="font-bold text-slate-800 text-sm leading-snug group-hover:text-indigo-600 transition-colors">
-        {resource.name}
-      </h3>
-      <p className="text-xs text-slate-500 mt-1">{formatType(resource.type)}</p>
 
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-50">
-        <div className="flex items-center gap-1 text-xs text-slate-400">
-          <MapPin size={11} />
-          <span className="truncate max-w-[100px]">{resource.location || 'Campus'}</span>
+      <div className="p-5 pt-7 relative bg-white flex-1 flex flex-col">
+        {/* Floating Icon */}
+        <div className="absolute -top-7 left-5 w-14 h-14 rounded-2xl bg-white shadow-lg border border-slate-50 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 z-10">
+          <Building2 size={24} className="text-indigo-600" />
         </div>
-        {resource.capacity && (
-          <div className="flex items-center gap-1 text-xs text-slate-400">
-            <Package size={11} />
-            <span>{resource.capacity} cap.</span>
+
+        <p className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider mb-1.5">
+          {formatType(resource.type)}
+        </p>
+        <h3 className="font-bold text-slate-800 text-lg leading-snug group-hover:text-indigo-600 transition-colors">
+          {resource.name}
+        </h3>
+
+        <div className="flex items-center justify-between mt-auto pt-5 border-t border-slate-50">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+            <MapPin size={14} className="text-slate-400 group-hover:text-indigo-400 transition-colors" />
+            <span className="truncate max-w-[120px]">{resource.location || 'Campus'}</span>
           </div>
-        )}
+          {resource.capacity && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium bg-slate-50 px-2.5 py-1.5 rounded-lg group-hover:bg-indigo-50 group-hover:text-indigo-700 transition-colors">
+              <Package size={14} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
+              <span>{resource.capacity} cap.</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 // ── Announcement Card ─────────────────────────────────────────────────────────
-const AnnouncementCard: React.FC<(typeof CAMPUS_ANNOUNCEMENTS)[0]> = ({
-  icon, title, body, time, category, color,
+const AnnouncementCard: React.FC<(typeof CAMPUS_ANNOUNCEMENTS)[0] & { index: number }> = ({
+  icon, title, body, time, category, color, index
 }) => {
   const colorMap: Record<string, string> = {
     indigo: 'bg-indigo-50 text-indigo-700 border-indigo-100',
@@ -139,20 +159,33 @@ const AnnouncementCard: React.FC<(typeof CAMPUS_ANNOUNCEMENTS)[0]> = ({
     emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
     blue: 'bg-blue-50 text-blue-700 border-blue-100',
   };
+  
+  const iconBgMap: Record<string, string> = {
+    indigo: 'bg-indigo-100/50 shadow-indigo-100',
+    amber: 'bg-amber-100/50 shadow-amber-100',
+    emerald: 'bg-emerald-100/50 shadow-emerald-100',
+    blue: 'bg-blue-100/50 shadow-blue-100',
+  };
+
   return (
-    <div className="flex items-start gap-3 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 -mx-2 px-2 rounded-xl transition-colors cursor-pointer">
-      <span className="text-2xl leading-none mt-0.5 flex-shrink-0">{icon}</span>
+    <div 
+      className="group flex items-start gap-4 p-4 border border-transparent hover:border-slate-100 bg-white hover:bg-slate-50/80 hover:shadow-lg hover:-translate-y-1 rounded-2xl transition-all duration-300 cursor-pointer animate-fade-in-up mb-2 last:mb-0"
+      style={{ animationFillMode: 'both', animationDelay: `${index * 100 + 400}ms` }}
+    >
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-sm ${iconBgMap[color] || iconBgMap.indigo} group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300`}>
+        {icon}
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <p className="text-sm font-bold text-slate-800">{title}</p>
-          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${colorMap[color] || colorMap.indigo}`}>
+        <div className="flex items-center gap-2 mb-1.5">
+          <p className="text-sm font-extrabold text-slate-800 group-hover:text-indigo-600 transition-colors">{title}</p>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${colorMap[color] || colorMap.indigo}`}>
             {category}
           </span>
         </div>
-        <p className="text-xs text-slate-500 leading-relaxed">{body}</p>
+        <p className="text-xs text-slate-500 leading-relaxed font-medium group-hover:text-slate-600 transition-colors">{body}</p>
       </div>
-      <span className="text-[10px] text-slate-400 whitespace-nowrap flex-shrink-0 mt-1 flex items-center gap-1">
-        <Clock size={9} /> {time}
+      <span className="text-[10px] font-semibold text-slate-400 whitespace-nowrap flex-shrink-0 mt-1 flex items-center gap-1 group-hover:text-indigo-500 transition-colors">
+        <Clock size={11} /> {time}
       </span>
     </div>
   );
@@ -202,6 +235,15 @@ export const UserDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
 
       {/* ═══ HERO BANNER ═══════════════════════════════════════════════════════ */}
       <div className="relative w-full overflow-hidden" style={{ height: '260px' }}>
@@ -330,8 +372,8 @@ export const UserDashboard: React.FC = () => {
               </span>
             </div>
             <div>
-              {CAMPUS_ANNOUNCEMENTS.map((ann) => (
-                <AnnouncementCard key={ann.id} {...ann} />
+              {CAMPUS_ANNOUNCEMENTS.map((ann, i) => (
+                <AnnouncementCard key={ann.id} {...ann} index={i} />
               ))}
             </div>
           </div>
@@ -359,9 +401,9 @@ export const UserDashboard: React.FC = () => {
               <p className="text-sm mt-1">Check back soon for new campus resources.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {recentlyAdded.map((r) => (
-                <ResourceCard key={r.id} resource={r} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {recentlyAdded.map((r, i) => (
+                <ResourceCard key={r.id} resource={r} index={i} />
               ))}
             </div>
           )}

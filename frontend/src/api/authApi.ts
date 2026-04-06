@@ -20,6 +20,7 @@ export interface AuthApiResponse {
   fullName: string;
   email: string;
   role: string;
+  profileImage?: string;
   message: string;
 }
 
@@ -36,3 +37,7 @@ export const loginUser = (payload: LoginPayload): Promise<AuthApiResponse> =>
 /** Check if an email is already registered (real-time validation) */
 export const checkEmailExists = (email: string): Promise<{ exists: boolean }> =>
   api.get<{ exists: boolean }>('/auth/check-email', { params: { email } }).then((r) => r.data);
+
+/** Update user profile */
+export const updateProfile = (id: string, payload: { fullName?: string; profileImage?: string }): Promise<AuthApiResponse> =>
+  api.put<AuthApiResponse>(`/auth/profile/${id}`, payload).then((r) => r.data);

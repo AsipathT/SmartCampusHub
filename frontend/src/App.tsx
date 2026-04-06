@@ -19,6 +19,7 @@ import { ResourceDetails } from './pages/facilities/ResourceDetails';
 // ── User pages ─────────────────────────────────────────────────────────────────
 import { UserDashboard } from './pages/user/UserDashboard';
 import { BrowseResources } from './pages/user/BrowseResources';
+import { UserProfile } from './pages/user/UserProfile';
 
 const App: React.FC = () => {
   return (
@@ -62,6 +63,7 @@ const App: React.FC = () => {
               {/* ── Shared Routes (ADMIN + USER) ──────────────────────────── */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'USER']} />}>
                 <Route path="facilities/resources/:id" element={<ResourceDetails />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* ── USER Routes (USER only, ADMIN can also access via bypass) */}
