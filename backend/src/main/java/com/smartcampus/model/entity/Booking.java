@@ -18,9 +18,8 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class Booking {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -55,7 +54,4 @@ public class Booking {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
-
-    @Column(columnDefinition = "TEXT")
-    private String rejectionReason;
 }

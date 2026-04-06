@@ -33,23 +33,14 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(dto));
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<BookingDto> updateBookingStatus(
-            @PathVariable Long id,
-            @RequestParam String status,
-            @RequestParam(required = false) String reason
-    ) {
-        return ResponseEntity.ok(bookingService.updateBookingStatus(id, status, reason));
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<BookingDto> updateStatus(@PathVariable Long id, @RequestParam String status) {
+        return ResponseEntity.ok(bookingService.updateBookingStatus(id, status));
     }
 
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<BookingDto> cancelBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(bookingService.cancelBooking(id));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
-        bookingService.deleteBooking(id);
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
+        bookingService.cancelBooking(id);
         return ResponseEntity.noContent().build();
     }
 }

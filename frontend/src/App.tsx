@@ -8,7 +8,6 @@ import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 
-// ── Admin pages ────────────────────────────────────────────────────────────────
 import { Dashboard as AdminDashboard } from './pages/facilities/Dashboard';
 import { ResourceList } from './pages/facilities/ResourceList';
 import { AddResource } from './pages/facilities/AddResource';
@@ -29,16 +28,18 @@ import { IncidentTickets } from './pages/user/IncidentTickets';
 import { ReportIncident } from './pages/user/ReportIncident';
 import { IncidentTicketDetails } from './pages/user/IncidentTicketDetails';
 import { StudentNotifications } from './pages/user/StudentNotifications';
+
+// Booking pages
 import { AddBooking } from './pages/bookings/AddBooking';
 import { BookingDashboard } from './pages/bookings/BookingDashboard';
-import { ManageBookings as BookingManage } from './pages/bookings/ManageBookings';
-import { MyBookings as BookingMyBookings } from './pages/bookings/MyBookings';
+import { MyBookings } from './pages/bookings/MyBookings';
+import { ManageBookings } from './pages/bookings/ManageBookings';
+import { AdminBookingDashboard } from './pages/bookings/AdminBookingDashboard';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        {/* Global Toast Notifications */}
         <Toaster
           position="top-right"
           toastOptions={{
@@ -48,19 +49,11 @@ const App: React.FC = () => {
         />
 
         <Routes>
-          {/* ── Public Routes ──────────────────────────────────────────────── */}
-          <Route path="/login"    element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ── Protected Application Shell ─────────────────────────────────
-              This outer ProtectedRoute only checks authentication.
-              Inner ProtectedRoutes add role-based access control.
-          ───────────────────────────────────────────────────────────────── */}
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<MainLayout />}>
-
-              {/* Default redirect — role-aware redirect is handled by Login,
-                  but guard against direct /app access */}
               <Route index element={<Navigate to="/app/admin/dashboard" replace />} />
 
               {/* ── ADMIN Routes (ADMIN only) ─────────────────────────────── */}
@@ -75,19 +68,18 @@ const App: React.FC = () => {
                 <Route path="admin/incidents/map" element={<IncidentMap />} />
                 <Route path="admin/incidents/notifications" element={<AdminNotifications />} />
                 <Route path="admin/incidents/:id" element={<AdminTicketDetails />} />
-                <Route path="bookings/manage" element={<BookingManage />} />
+                <Route path="bookings/admin-dashboard" element={<AdminBookingDashboard />} />
+                <Route path="bookings/manage" element={<ManageBookings />} />
               </Route>
 
               {/* ── Shared Routes (ADMIN + USER) ──────────────────────────── */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'USER']} />}>
                 <Route path="facilities/resources/:id" element={<ResourceDetails />} />
                 <Route path="profile" element={<UserProfile />} />
-                <Route path="bookings/dashboard" element={<BookingDashboard />} />
                 <Route path="bookings/add" element={<AddBooking />} />
-                <Route path="bookings/my" element={<BookingMyBookings />} />
               </Route>
 
-              {/* ── USER Routes (USER only, ADMIN can also access via bypass) */}
+              {/* ── USER Routes ────────────────────────────────────────────── */}
               <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>
                 <Route path="user/dashboard" element={<UserDashboard />} />
                 <Route path="user/browse" element={<BrowseResources />} />
@@ -95,8 +87,10 @@ const App: React.FC = () => {
                 <Route path="user/incidents/report" element={<ReportIncident />} />
                 <Route path="user/incidents/:id" element={<IncidentTicketDetails />} />
                 <Route path="user/notifications" element={<StudentNotifications />} />
-              </Route>
 
+                <Route path="bookings/dashboard" element={<BookingDashboard />} />
+                <Route path="bookings/my" element={<MyBookings />} />
+              </Route>
             </Route>
           </Route>
 

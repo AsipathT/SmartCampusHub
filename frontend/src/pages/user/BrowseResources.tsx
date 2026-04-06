@@ -102,23 +102,20 @@ const BrowseCard: React.FC<{ resource: Resource }> = ({ resource }) => {
           )}
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 w-full">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              toast.success('Room booking features coming soon!');
-            }}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors shadow-sm"
-          >
-            Book Now
-          </button>
-          <Link
-            to={`/app/facilities/resources/${resource.id}`}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-xs transition-colors"
-          >
-            Details <ChevronRight size={13} />
-          </Link>
-        </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 w-full">
+  <Link
+    to={`/app/bookings/add?resourceId=${resource.id}`}
+    className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors shadow-sm"
+  >
+    Book Now
+  </Link>
+  <Link
+    to={`/app/facilities/resources/${resource.id}`}
+    className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-xs transition-colors"
+  >
+    Details <ChevronRight size={13} />
+  </Link>
+</div>
       </div>
     </div>
   );

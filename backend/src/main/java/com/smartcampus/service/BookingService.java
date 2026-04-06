@@ -1,13 +1,13 @@
 package com.smartcampus.service;
 
 import com.smartcampus.dto.BookingDto;
+
 import java.util.List;
 
 public interface BookingService {
     List<BookingDto> getAllBookings();
     List<BookingDto> getUserBookings(Long userId);
-    BookingDto createBooking(BookingDto bookingDto);
-    BookingDto updateBookingStatus(Long id, String status, String reason);
-    BookingDto cancelBooking(Long id);
-    void deleteBooking(Long id);
+    BookingDto createBooking(BookingDto dto);
+    BookingDto updateBookingStatus(Long id, String status);
+    void cancelBooking(Long id);
 }

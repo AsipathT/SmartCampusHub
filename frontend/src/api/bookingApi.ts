@@ -4,18 +4,19 @@ export interface Booking {
   id?: number;
   resourceId: number;
   resourceName?: string;
-  userId?: number;
+  resourceLocation?: string;
+  resourceType?: string;
+  userId: number;
   userName?: string;
   bookingDate: string;
   startTime: string;
   endTime: string;
-  status?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  status?: string;
   purpose?: string;
-  rejectionReason?: string;
 }
 
-export const createBooking = async (booking: Booking): Promise<Booking> => {
-  const response = await api.post('/bookings', booking);
+export const getAllBookings = async (): Promise<Booking[]> => {
+  const response = await api.get('/bookings');
   return response.data;
 };
 
@@ -24,27 +25,21 @@ export const getMyBookings = async (userId: number): Promise<Booking[]> => {
   return response.data;
 };
 
-export const getAllBookings = async (): Promise<Booking[]> => {
-  const response = await api.get('/bookings');
+export const createBooking = async (payload: Booking): Promise<Booking> => {
+  const response = await api.post('/bookings', payload);
   return response.data;
 };
 
 export const updateBookingStatus = async (
   id: number,
-  status: string,
-  reason?: string
+  status: 'APPROVED' | 'REJECTED' | 'PENDING' | 'CANCELLED'
 ): Promise<Booking> => {
-  const response = await api.put(`/bookings/${id}/status`, null, {
-    params: { status, reason }
+  const response = await api.patch(`/bookings/${id}/status`, null, {
+    params: { status },
   });
   return response.data;
 };
 
-export const cancelBooking = async (id: number): Promise<Booking> => {
-  const response = await api.put(`/bookings/${id}/cancel`);
-  return response.data;
-};
-
-export const deleteBooking = async (id: number): Promise<void> => {
-  await api.delete(`/bookings/${id}`);
+export const cancelBooking = async (id: number): Promise<void> => {
+  await api.patch(`/bookings/${id}/cancel`);
 };
