@@ -1,6 +1,7 @@
 package com.smartcampus.controller;
 
 import com.smartcampus.dto.BookingDto;
+import com.smartcampus.dto.BookingStatusUpdateRequest;
 import com.smartcampus.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +35,11 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<BookingDto> updateStatus(@PathVariable Long id, @RequestParam String status) {
-        return ResponseEntity.ok(bookingService.updateBookingStatus(id, status));
+    public ResponseEntity<BookingDto> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody BookingStatusUpdateRequest request
+    ) {
+        return ResponseEntity.ok(bookingService.updateBookingStatus(id, request));
     }
 
     @PatchMapping("/{id}/cancel")

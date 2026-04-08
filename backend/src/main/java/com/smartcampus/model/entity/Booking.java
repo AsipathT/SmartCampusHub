@@ -45,8 +45,14 @@ public class Booking {
     @Column(nullable = false, length = 20)
     private BookingStatus status;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String purpose;
+
+    @Column(nullable = false)
+    private Integer expectedAttendees;
+
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
 
     @CreatedDate
     @Column(updatable = false)

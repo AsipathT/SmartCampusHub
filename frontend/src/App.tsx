@@ -35,6 +35,7 @@ import { BookingDashboard } from './pages/bookings/BookingDashboard';
 import { MyBookings } from './pages/bookings/MyBookings';
 import { ManageBookings } from './pages/bookings/ManageBookings';
 import { AdminBookingDashboard } from './pages/bookings/AdminBookingDashboard';
+import { BookingNotifications } from './pages/bookings/BookingNotifications';
 
 const App: React.FC = () => {
   return (
@@ -90,6 +91,7 @@ const App: React.FC = () => {
 
                 <Route path="bookings/dashboard" element={<BookingDashboard />} />
                 <Route path="bookings/my" element={<MyBookings />} />
+                <Route path="bookings/notifications" element={<BookingNotifications />} />
               </Route>
             </Route>
           </Route>

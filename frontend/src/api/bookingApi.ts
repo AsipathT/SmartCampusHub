@@ -6,13 +6,24 @@ export interface Booking {
   resourceName?: string;
   resourceLocation?: string;
   resourceType?: string;
+  resourceCapacity?: number;
+
   userId: number;
   userName?: string;
+
   bookingDate: string;
   startTime: string;
   endTime: string;
   status?: string;
-  purpose?: string;
+  purpose: string;
+
+  expectedAttendees: number;
+  rejectionReason?: string | null;
+}
+
+export interface BookingStatusUpdatePayload {
+  status: 'APPROVED' | 'REJECTED';
+  rejectionReason?: string;
 }
 
 export const getAllBookings = async (): Promise<Booking[]> => {
@@ -32,11 +43,9 @@ export const createBooking = async (payload: Booking): Promise<Booking> => {
 
 export const updateBookingStatus = async (
   id: number,
-  status: 'APPROVED' | 'REJECTED' | 'PENDING' | 'CANCELLED'
+  payload: BookingStatusUpdatePayload
 ): Promise<Booking> => {
-  const response = await api.patch(`/bookings/${id}/status`, null, {
-    params: { status },
-  });
+  const response = await api.patch(`/bookings/${id}/status`, payload);
   return response.data;
 };
 

@@ -1,6 +1,7 @@
 package com.smartcampus.dto;
 
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -19,6 +20,7 @@ public class BookingDto {
     private String resourceName;
     private String resourceLocation;
     private String resourceType;
+    private Integer resourceCapacity;
 
     @NotNull(message = "User ID is required")
     private Long userId;
@@ -35,5 +37,13 @@ public class BookingDto {
     private String endTime;
 
     private String status;
+
+    @NotBlank(message = "Purpose is required")
     private String purpose;
+
+    @NotNull(message = "Expected attendees is required")
+    @Min(value = 1, message = "Expected attendees must be at least 1")
+    private Integer expectedAttendees;
+
+    private String rejectionReason;
 }
