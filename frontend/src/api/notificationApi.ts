@@ -22,3 +22,19 @@ export const getUnreadCount = async (userId: string | number): Promise<number> =
 export const markAsRead = async (notificationId: number): Promise<void> => {
   await api.patch(`/notifications/${notificationId}/read`);
 };
+
+export const getNotifications = async (
+  userId: string | number,
+  type?: string
+): Promise<Notification[]> => {
+  const response = await api.get('/notifications', { params: { userId, type } });
+  return response.data;
+};
+
+export const markAsReadForUser = async (notificationId: number, userId: string | number): Promise<void> => {
+  await api.patch(`/notifications/${notificationId}/read`, null, { params: { userId } });
+};
+
+export const markAllAsRead = async (userId: string | number): Promise<void> => {
+  await api.patch('/notifications/read-all', null, { params: { userId } });
+};

@@ -14,6 +14,10 @@ import {
   Settings,
   Box,
   Search,
+  Wrench,
+  Bell,
+  ClipboardList,
+  Ticket,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
@@ -94,6 +98,36 @@ const ADMIN_NAV: RoleNavConfig = {
         },
       ],
     },
+    {
+      id: 'incident-admin',
+      label: 'Incident Operations',
+      icon: Wrench,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'incident-admin-dashboard',
+          label: 'Dashboard',
+          path: '/app/admin/incidents/dashboard',
+          icon: LayoutDashboard,
+          exact: true,
+          description: 'Incident operations overview',
+        },
+        {
+          id: 'incident-manage-tickets',
+          label: 'Manage Tickets',
+          path: '/app/admin/incidents/manage',
+          icon: Ticket,
+          description: 'Assign and update ticket workflow',
+        },
+        {
+          id: 'incident-admin-notifications',
+          label: 'Notifications',
+          path: '/app/admin/incidents/notifications',
+          icon: Bell,
+          description: 'Incident and booking notifications',
+        },
+      ],
+    },
   ],
 };
 
@@ -124,6 +158,36 @@ const USER_NAV: RoleNavConfig = {
           path: '/app/user/browse',
           icon: Search,
           description: 'Discover available campus facilities',
+        },
+      ],
+    },
+    {
+      id: 'incident-user',
+      label: 'Incident Services',
+      icon: Wrench,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'incident-tickets',
+          label: 'Incident Tickets',
+          path: '/app/user/incidents',
+          icon: ClipboardList,
+          exact: true,
+          description: 'Track your maintenance incidents',
+        },
+        {
+          id: 'report-incident',
+          label: 'Report Incident',
+          path: '/app/user/incidents/report',
+          icon: PlusCircle,
+          description: 'Create a new incident ticket',
+        },
+        {
+          id: 'student-notifications',
+          label: 'Notifications',
+          path: '/app/user/notifications',
+          icon: Bell,
+          description: 'View incident and booking notifications',
         },
       ],
     },

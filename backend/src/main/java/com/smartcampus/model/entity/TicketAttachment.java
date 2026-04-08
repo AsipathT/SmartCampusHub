@@ -8,38 +8,36 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "incident_ticket_attachments")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
+public class TicketAttachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ticket_id", nullable = false)
+    private Ticket ticket;
 
-    @Column(nullable = false, length = 1000)
-    private String message;
+    @Column(nullable = false, length = 255)
+    private String originalFileName;
 
-    @Column(nullable = false, length = 100)
-    private String type;
+    @Column(nullable = false, length = 255)
+    private String storedFileName;
 
-    @Column(nullable = false)
-    private Long userId; // The user this notification belongs to
-
-    @Column(length = 100)
-    private String relatedEntityType;
-
-    @Column
-    private Long relatedEntityId;
+    @Column(nullable = false, length = 50)
+    private String contentType;
 
     @Column(nullable = false)
-    private boolean isRead;
+    private Long fileSizeBytes;
+
+    @Column(nullable = false, length = 500)
+    private String fileUrl;
 
     @CreatedDate
     @Column(updatable = false)

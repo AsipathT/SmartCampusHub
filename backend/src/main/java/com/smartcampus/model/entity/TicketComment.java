@@ -3,45 +3,41 @@ package com.smartcampus.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "incident_ticket_comments")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
+public class TicketComment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ticket_id", nullable = false)
+    private Ticket ticket;
 
-    @Column(nullable = false, length = 1000)
-    private String message;
+    @Column(nullable = false)
+    private Long authorUserId;
 
     @Column(nullable = false, length = 100)
-    private String type;
+    private String authorRole;
 
-    @Column(nullable = false)
-    private Long userId; // The user this notification belongs to
-
-    @Column(length = 100)
-    private String relatedEntityType;
-
-    @Column
-    private Long relatedEntityId;
-
-    @Column(nullable = false)
-    private boolean isRead;
+    @Column(nullable = false, length = 2000)
+    private String content;
 
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 }

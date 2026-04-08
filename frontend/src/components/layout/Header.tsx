@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bell, Search, Menu, X, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUnreadCount } from '../../api/notificationApi';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -9,10 +11,16 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle, mobileMenuOpen }) => {
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
 
-  // Mock notification count — wire to real API later
-  const notifCount = isAdmin ? 3 : 1;
+  useEffect(() => {
+    if (!user?.id) return;
+    getUnreadCount(user.id)
+      .then(setNotifCount)
+      .catch(() => setNotifCount(0));
+  }, [user?.id]);
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 flex-shrink-0">
@@ -84,7 +92,13 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle, mobileMenuOp
                 )}
               </div>
               <div className="px-4 py-3 bg-slate-50">
-                <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors w-full text-center">
+                <button
+                  onClick={() => {
+                    setNotifOpen(false);
+                    navigate(isAdmin ? '/app/admin/incidents/notifications' : '/app/user/notifications');
+                  }}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors w-full text-center"
+                >
                   View all notifications
                 </button>
               </div>
