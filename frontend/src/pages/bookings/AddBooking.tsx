@@ -162,36 +162,36 @@ export const AddBooking: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50/60 to-violet-100/60">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
-        {/* TOP AREA */}
-        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-500 p-8 md:p-10 text-white shadow-[0_24px_60px_rgba(79,70,229,0.25)]">
-            <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.14),_transparent_28%),linear-gradient(to_bottom_right,_#f8fafc,_#eef2ff,_#f5f3ff)]">
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+          <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500 p-8 text-white shadow-[0_28px_80px_rgba(79,70,229,0.28)] md:p-10">
+            <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute bottom-0 left-1/3 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -bottom-10 left-20 h-32 w-32 rounded-full bg-indigo-200/10 blur-3xl" />
 
             <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-indigo-50">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-indigo-50 backdrop-blur-sm">
                 <Sparkles size={14} />
                 Booking Request
               </div>
 
-              <h1 className="mt-4 text-3xl md:text-5xl font-black tracking-tight">
+              <h1 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
                 Create a New Booking
               </h1>
 
-              <p className="mt-4 max-w-2xl text-sm md:text-base leading-6 text-indigo-100">
-                Submit a facility booking request with your preferred date, time,
-                purpose, and expected attendees in a clean and professional way.
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-indigo-100 md:text-base">
+                Submit a facility booking request with your preferred date, time, purpose,
+                and expected attendees in a cleaner and more polished flow.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
-                <div className="rounded-2xl bg-white/15 px-4 py-3 backdrop-blur">
+                <div className="rounded-2xl border border-white/10 bg-white/15 px-4 py-3 text-white backdrop-blur-md shadow-inner">
                   <p className="text-xs uppercase tracking-widest text-indigo-100">Status</p>
                   <p className="mt-1 text-lg font-black">Pending Review</p>
                 </div>
 
-                <div className="rounded-2xl bg-white/15 px-4 py-3 backdrop-blur">
+                <div className="rounded-2xl border border-white/10 bg-white/15 px-4 py-3 text-white backdrop-blur-md shadow-inner">
                   <p className="text-xs uppercase tracking-widest text-indigo-100">Process</p>
                   <p className="mt-1 text-lg font-black">Request Submission</p>
                 </div>
@@ -199,9 +199,9 @@ export const AddBooking: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/60 bg-white/80 backdrop-blur p-6 md:p-7 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+          <div className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur md:p-7">
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-violet-100 p-3 text-violet-600">
+              <div className="rounded-2xl bg-violet-100 p-3 text-violet-600 shadow-sm">
                 <WandSparkles size={20} />
               </div>
               <div>
@@ -219,14 +219,13 @@ export const AddBooking: React.FC = () => {
           </div>
         </div>
 
-        {/* MAIN CONTENT */}
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1.35fr_0.65fr]">
-          <div className="rounded-[32px] border border-white/70 bg-white/90 backdrop-blur p-7 md:p-9 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="rounded-[32px] border border-white/70 bg-white/90 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur md:p-9">
             <div className="mb-8">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-500">
                 Booking Form
               </p>
-              <h2 className="mt-2 text-2xl md:text-3xl font-black text-slate-800">
+              <h2 className="mt-2 text-2xl font-black text-slate-800 md:text-3xl">
                 Request Details
               </h2>
               <p className="mt-2 text-sm text-slate-500">
@@ -241,7 +240,7 @@ export const AddBooking: React.FC = () => {
                     name="resourceId"
                     value={form.resourceId}
                     onChange={handleChange}
-                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-sm text-slate-700 outline-none transition duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                     required
                     disabled={loadingResources}
                   >
@@ -256,8 +255,8 @@ export const AddBooking: React.FC = () => {
               )}
 
               {selectedResource && (
-                <div className="relative overflow-hidden rounded-[28px] border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-5 md:p-6 shadow-sm">
-                  <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-indigo-100/60 blur-2xl" />
+                <div className="relative overflow-hidden rounded-[28px] border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-5 shadow-md transition duration-300 hover:shadow-lg md:p-6">
+                  <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-indigo-100/60 blur-2xl" />
 
                   <div className="relative flex items-start gap-4">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md">
@@ -276,9 +275,18 @@ export const AddBooking: React.FC = () => {
                       </p>
 
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <BadgePill icon={<MapPin size={13} />} text={selectedResource.location || 'SLIIT Campus'} />
-                        <BadgePill icon={<Package size={13} />} text={formatType(selectedResource.type)} />
-                        <BadgePill icon={<Users size={13} />} text={`Capacity: ${selectedResource.capacity ?? 'N/A'}`} />
+                        <BadgePill
+                          icon={<MapPin size={13} />}
+                          text={selectedResource.location || 'SLIIT Campus'}
+                        />
+                        <BadgePill
+                          icon={<Package size={13} />}
+                          text={formatType(selectedResource.type)}
+                        />
+                        <BadgePill
+                          icon={<Users size={13} />}
+                          text={`Capacity: ${selectedResource.capacity ?? 'N/A'}`}
+                        />
                       </div>
                     </div>
                   </div>
@@ -297,7 +305,7 @@ export const AddBooking: React.FC = () => {
                       name="bookingDate"
                       value={form.bookingDate}
                       onChange={handleChange}
-                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-700 outline-none transition duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                       required
                     />
                   </div>
@@ -315,7 +323,7 @@ export const AddBooking: React.FC = () => {
                       name="expectedAttendees"
                       value={form.expectedAttendees}
                       onChange={handleChange}
-                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-700 outline-none transition duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                       required
                     />
                   </div>
@@ -339,7 +347,7 @@ export const AddBooking: React.FC = () => {
                       name="startTime"
                       value={form.startTime}
                       onChange={handleChange}
-                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-700 outline-none transition duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                       required
                     />
                   </div>
@@ -356,7 +364,7 @@ export const AddBooking: React.FC = () => {
                       name="endTime"
                       value={form.endTime}
                       onChange={handleChange}
-                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-700 outline-none transition duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                       required
                     />
                   </div>
@@ -375,7 +383,7 @@ export const AddBooking: React.FC = () => {
                     onChange={handleChange}
                     rows={5}
                     placeholder="Enter the purpose of this booking"
-                    className="w-full resize-none rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+                    className="w-full resize-none rounded-2xl border border-slate-300 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-700 outline-none transition duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                     required
                   />
                 </div>
@@ -385,7 +393,7 @@ export const AddBooking: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 font-bold text-white shadow-[0_12px_24px_rgba(79,70,229,0.25)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500 px-6 py-3.5 font-bold text-white shadow-[0_14px_30px_rgba(79,70,229,0.35)] transition duration-300 hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? 'Submitting...' : 'Create Booking'}
                   {!submitting && <ArrowRight size={18} />}
@@ -394,7 +402,7 @@ export const AddBooking: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/app/bookings/my')}
-                  className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-700 transition duration-300 hover:bg-slate-50 hover:shadow-sm"
                 >
                   Cancel
                 </button>
@@ -403,10 +411,10 @@ export const AddBooking: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-[32px] overflow-hidden border border-indigo-100 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+            <div className="overflow-hidden rounded-[32px] border border-indigo-100 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
               <div className="bg-gradient-to-br from-slate-900 via-indigo-900 to-violet-900 p-6 text-white">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-white/10 p-3">
+                  <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
                     <BadgeCheck size={20} />
                   </div>
                   <div>
@@ -423,9 +431,9 @@ export const AddBooking: React.FC = () => {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-white/70 bg-white/85 backdrop-blur p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+            <div className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-indigo-100 p-3 text-indigo-600">
+                <div className="rounded-2xl bg-indigo-100 p-3 text-indigo-600 shadow-sm">
                   <Info size={20} />
                 </div>
                 <div>
@@ -451,8 +459,10 @@ const GlassSection: React.FC<{
   title: string;
   children: React.ReactNode;
 }> = ({ title, children }) => (
-  <div className="rounded-[28px] border border-indigo-100/70 bg-gradient-to-br from-indigo-50/70 via-white to-violet-50/60 p-5 shadow-sm">
-    <label className="mb-3 block text-sm font-semibold text-slate-700">{title}</label>
+  <div className="rounded-[28px] border border-indigo-100/70 bg-gradient-to-br from-indigo-50/70 via-white to-violet-50/60 p-5 shadow-sm transition duration-300 hover:shadow-md">
+    <label className="mb-3 block text-sm font-bold tracking-wide text-slate-700">
+      {title}
+    </label>
     {children}
   </div>
 );
@@ -461,27 +471,27 @@ const BadgePill: React.FC<{
   icon: React.ReactNode;
   text: string;
 }> = ({ icon, text }) => (
-  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">
+  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
     {icon}
     {text}
   </span>
 );
 
 const TipCard: React.FC<{ text: string }> = ({ text }) => (
-  <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-3 text-sm text-slate-600">
+  <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-3 text-sm text-slate-600 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
     {text}
   </div>
 );
 
 const SoftNote: React.FC<{ text: string }> = ({ text }) => (
-  <div className="rounded-2xl bg-gradient-to-r from-slate-50 to-indigo-50/40 px-4 py-3 text-sm text-slate-600">
+  <div className="rounded-2xl border border-slate-100 bg-gradient-to-r from-slate-50 to-indigo-50/40 px-4 py-3 text-sm text-slate-600 shadow-sm">
     {text}
   </div>
 );
 
 const FlowStep: React.FC<{ number: string; text: string }> = ({ number, text }) => (
-  <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
-    <div className="min-w-[42px] rounded-xl bg-white text-center text-xs font-black text-indigo-700 px-2 py-2">
+  <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur-sm transition duration-300 hover:bg-white/20">
+    <div className="min-w-[42px] rounded-xl bg-white px-2 py-2 text-center text-xs font-black text-indigo-700 shadow">
       {number}
     </div>
     <p className="text-sm text-indigo-50">{text}</p>
