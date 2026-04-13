@@ -6,17 +6,17 @@ import { Ticket } from '../../types/ticket';
 import { PriorityBadge, StatusPill } from '../../components/incidents/TicketVisuals';
 import {
   AlertTriangle,
-  ArrowRight,
   ChevronDown,
   Clock,
   Filter,
   MapPin,
+  MessageSquare,
+  Paperclip,
   Search,
   Settings2,
   TicketCheck,
   User2,
 } from 'lucide-react';
-import { formatDuration, getSlaState, getTicketAgeMs } from '../../utils/ticketUx';
 
 export const ManageTickets: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -105,11 +105,13 @@ export const ManageTickets: React.FC = () => {
         </div>
 
         {/* ── Ticket list ── */}
-        <div className="space-y-3">
+        <div>
           {loading ? (
-            [...Array(5)].map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl skeleton-shimmer" style={{ animationDelay: `${i * 100}ms` }} />
-            ))
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-52 rounded-2xl skeleton-shimmer" style={{ animationDelay: `${i * 100}ms` }} />
+              ))}
+            </div>
           ) : error ? (
             <div className="flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-2xl p-5">
               <AlertTriangle className="text-rose-500 shrink-0" size={20} />
@@ -124,54 +126,63 @@ export const ManageTickets: React.FC = () => {
               <p className="text-xs text-slate-400 mt-1">Try broadening your search criteria</p>
             </div>
           ) : (
-            filtered.map((t, i) => (
-              <Link
-                key={t.id}
-                to={`/app/admin/incidents/${t.id}`}
-                className="group block bg-white/90 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-5 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100/30 transition-all duration-200 animate-card-enter"
-                style={{ animationDelay: `${Math.min(i, 10) * 50 + 120}ms` }}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/60 text-slate-500 shrink-0 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-200/60 transition-colors">
-                      <TicketCheck size={18} />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {filtered.map((t, i) => (
+                <Link
+                  key={t.id}
+                  to={`/app/admin/incidents/${t.id}`}
+                  className="group flex flex-col rounded-2xl bg-white border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5 animate-card-enter"
+                  style={{ animationDelay: `${Math.min(i, 10) * 50 + 120}ms` }}
+                >
+                  <div className="flex-1 px-5 pt-5 pb-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-sm font-bold text-slate-800">TKT-{t.id}</span>
+                      <StatusPill status={t.status} />
+                      <span className="ml-auto"><PriorityBadge priority={t.priority} /></span>
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold text-slate-400 tracking-wider">TKT-{t.id}</span>
-                        <StatusPill status={t.status} />
-                        <PriorityBadge priority={t.priority} />
-                      </div>
-                      <p className="text-sm font-medium text-slate-800 mt-1.5 line-clamp-2 group-hover:text-indigo-900 transition-colors">
-                        {t.description}
-                      </p>
+
+                    <h3 className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-slate-700 transition-colors">
+                      {t.description}
+                    </h3>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={13} className="text-slate-400" aria-hidden />
+                        {t.location}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Clock size={13} className="text-slate-400" aria-hidden />
+                        {new Date(t.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                      <span className="text-slate-600">{t.category}</span>
                     </div>
                   </div>
-                  <ArrowRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0 hidden sm:block" />
-                </div>
-                <div className="mt-3 pl-[52px] flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-indigo-300" />
-                    {t.category}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin size={11} className="text-slate-400" />
-                    {t.location}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <User2 size={11} className="text-slate-400" />
-                    {t.assignedStaffId ? `Staff #${t.assignedStaffId}` : 'Unassigned'}
-                  </span>
-                  <span>{new Date(t.createdAt).toLocaleDateString()}</span>
-                  <span className={`inline-flex items-center gap-1 font-semibold ${
-                    getSlaState(t) === 'breached' ? 'text-rose-600' : getSlaState(t) === 'warning' ? 'text-amber-600' : 'text-emerald-600'
-                  }`}>
-                    <Clock size={11} />
-                    {formatDuration(getTicketAgeMs(t))}
-                  </span>
-                </div>
-              </Link>
-            ))
+
+                  <div className="mx-5 border-t border-slate-100" />
+
+                  <div className="px-5 py-3 flex items-center justify-between text-xs text-slate-500">
+                    <span className="inline-flex items-center gap-1.5">
+                      <User2 size={14} className="text-slate-400" aria-hidden />
+                      {t.assignedStaffId ? `Staff #${t.assignedStaffId}` : 'Unassigned'}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      {(t.attachmentCount ?? 0) > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <Paperclip size={13} className="text-slate-400" aria-hidden />
+                          {t.attachmentCount}
+                        </span>
+                      )}
+                      {(t.commentCount ?? 0) > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <MessageSquare size={13} className="text-slate-400" aria-hidden />
+                          {t.commentCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           )}
         </div>
       </div>
