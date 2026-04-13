@@ -35,19 +35,20 @@ export const StatusPill: React.FC<{ status: TicketStatus }> = ({ status }) => {
   );
 };
 
-const priorityConfig: Record<TicketPriority, { bg: string; dot: string }> = {
-  LOW: { bg: 'bg-slate-50 text-slate-600 border-slate-200 ring-1 ring-slate-100', dot: 'bg-slate-400' },
-  MEDIUM: { bg: 'bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-100', dot: 'bg-amber-500' },
-  HIGH: { bg: 'bg-orange-50 text-orange-700 border-orange-200 ring-1 ring-orange-100', dot: 'bg-orange-500' },
-  CRITICAL: { bg: 'bg-rose-50 text-rose-700 border-rose-200 ring-1 ring-rose-100', dot: 'bg-rose-500' },
+const priorityConfig: Record<TicketPriority, { text: string; dot: string }> = {
+  LOW: { text: 'text-slate-600', dot: 'bg-slate-400' },
+  MEDIUM: { text: 'text-amber-600', dot: 'bg-amber-500' },
+  HIGH: { text: 'text-red-600', dot: 'bg-red-500' },
+  CRITICAL: { text: 'text-rose-700', dot: 'bg-rose-600' },
 };
 
 export const PriorityBadge: React.FC<{ priority: TicketPriority }> = ({ priority }) => {
   const cfg = priorityConfig[priority];
+  const label = priority.charAt(0) + priority.slice(1).toLowerCase();
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border tracking-wide ${cfg.bg}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-      {priority}
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${cfg.text}`}>
+      <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+      {label}
     </span>
   );
 };
