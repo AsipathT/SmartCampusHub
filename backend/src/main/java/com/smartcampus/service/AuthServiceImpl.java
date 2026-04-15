@@ -32,15 +32,13 @@ public class AuthServiceImpl implements AuthService {
         // 2. Enforce SLIIT student email domain
         if (!request.getEmail().toLowerCase().endsWith("@my.sliit.lk")) {
             throw new IllegalArgumentException(
-                "Registration is restricted to SLIIT students. Please use your @my.sliit.lk email."
-            );
+                    "Registration is restricted to SLIIT students. Please use your @my.sliit.lk email.");
         }
 
         // 3. Check for duplicate email
         if (userRepository.findByEmail(request.getEmail().toLowerCase()).isPresent()) {
             throw new IllegalArgumentException(
-                "An account with this email already exists. Please login instead."
-            );
+                    "An account with this email already exists. Please login instead.");
         }
 
         // 4. Derive username from student ID (part before @)
@@ -49,8 +47,7 @@ public class AuthServiceImpl implements AuthService {
         // 5. Check username uniqueness (edge case)
         if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException(
-                "An account for this student ID already exists. Please login instead."
-            );
+                    "An account for this student ID already exists. Please login instead.");
         }
 
         // 6. Build and persist user
@@ -90,8 +87,7 @@ public class AuthServiceImpl implements AuthService {
         // 1. Look up user by email (case-insensitive)
         User user = userRepository.findByEmail(request.getEmail().toLowerCase())
                 .orElseThrow(() -> new IllegalArgumentException(
-                    "No account found with this email. Please register first."
-                ));
+                        "No account found with this email. Please register first."));
 
         // 2. Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -108,7 +104,8 @@ public class AuthServiceImpl implements AuthService {
                 .profileImage(user.getProfileImage())
                 .email(user.getEmail())
                 .role(user.getRole())
-                .message("Welcome back, " + user.getFullName() + "! You have successfully logged into Smart Campus Hub.")
+                .message(
+                        "Welcome back, " + user.getFullName() + "! You have successfully logged into Smart Campus Hub.")
                 .build();
     }
 
@@ -132,10 +129,9 @@ public class AuthServiceImpl implements AuthService {
 
         if (updated) {
             notificationService.createAsyncNotification(
-                saved.getId(), 
-                "You recently updated your profile details.", 
-                "PROFILE"
-            );
+                    saved.getId(),
+                    "You recently updated your profile details.",
+                    "PROFILE");
         }
 
         return AuthResponse.builder()
