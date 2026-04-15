@@ -23,8 +23,11 @@ public class ResourceController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "search", required = false) String search,
-            @RequestParam(name = "typeId", required = false) Long typeId) {
-        return ResponseEntity.ok(resourceService.getAllResources(page, size, search, typeId));
+            @RequestParam(name = "typeId", required = false) Long typeId,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(name = "sortDirection", defaultValue = "asc") String sortDirection) {
+        return ResponseEntity.ok(resourceService.getAllResources(page, size, search, typeId, status, sortBy, sortDirection));
     }
 
     @GetMapping("/{id}")
