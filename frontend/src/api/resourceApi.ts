@@ -25,16 +25,24 @@ const mapToResource = (facility: any): Resource => ({
   imageUrl: facility.imageUrl
 });
 
-export const getResources = async (page = 0, size = 10, search = '', type = ''): Promise<PageResponse<Resource>> => {
-  // Using params dynamically for backend filter capabilities
-  const params: Record<string, string | number> = { page, size };
-  if (search) params.search = search;
-  if (type) params.type = type;
+export const getResources = async (
+  page = 0,
+  size = 10,
+  search = '',
+  typeId?: number | null,
+  status?: string,
+  sortBy = 'id',
+  sortDirection = 'asc'
+): Promise<PageResponse<Resource>> => {
+  const params: Record<string, any> = { page, size, sortBy, sortDirection };
+  if (search)  params.search = search;
+  if (typeId)  params.typeId = typeId;
+  if (status && status !== 'ALL') params.status = status;
 
   const response = await api.get('/resources', { params });
   return {
     ...response.data,
-    content: response.data.content ? response.data.content.map(mapToResource) : []
+    content: response.data.content ? response.data.content.map(mapToResource) : [],
   };
 };
 
