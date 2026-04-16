@@ -5,10 +5,11 @@ import com.smartcampus.dto.ResourceDto;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ResourceService {
-    PageResponse<ResourceDto> getAllResources(int page, int size, String search, Long typeId);
+    PageResponse<ResourceDto> getAllResources(int page, int size, String search, Long typeId, String status, String sortBy, String sortDirection);
     ResourceDto getResourceById(Long id);
     ResourceDto createResource(ResourceDto resourceDto);
     ResourceDto updateResource(Long id, ResourceDto resourceDto);
     void deleteResource(Long id);
+    ResourceDto patchStatus(Long id, String status);
     String uploadImage(MultipartFile file);
 }

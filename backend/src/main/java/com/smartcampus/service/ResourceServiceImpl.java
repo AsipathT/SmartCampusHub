@@ -33,22 +33,61 @@ public class ResourceServiceImpl implements ResourceService {
     private final ResourceTypeRepository resourceTypeRepository;
 
     @Override
-    public PageResponse<ResourceDto> getAllResources(int page, int size, String search, Long typeId) {
-        Pageable pageable = PageRequest.of(page, size);
+    public PageResponse<ResourceDto> getAllResources(int page, int size, String search, Long typeId, String status, String sortBy, String sortDirection) {
+        // --- Sorting ---
+        String resolvedSortBy = (sortBy != null && !sortBy.isBlank()) ? sortBy : "id";
+        // Map frontend-friendly field names to actual entity field names
+        if (resolvedSortBy.equals("capacity")) resolvedSortBy = "capacity";
+        if (resolvedSortBy.equals("name"))     resolvedSortBy = "name";
 
+        org.springframework.data.domain.Sort.Direction direction =
+            "desc".equalsIgnoreCase(sortDirection)
+                ? org.springframework.data.domain.Sort.Direction.DESC
+                : org.springframework.data.domain.Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size,
+            org.springframework.data.domain.Sort.by(direction, resolvedSortBy));
+
+        // --- Specification (multi-filter) ---
         org.springframework.data.jpa.domain.Specification<Resource> spec = (root, query, cb) -> {
             java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+
+            // Keyword search: name OR location OR description
             if (search != null && !search.trim().isEmpty()) {
-                String likePattern = "%" + search.toLowerCase() + "%";
+                String likePattern = "%" + search.toLowerCase().trim() + "%";
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("name")), likePattern),
-                        cb.like(cb.lower(root.get("location")), likePattern)
+                    cb.like(cb.lower(root.get("name")), likePattern),
+                    cb.like(cb.lower(root.get("location")), likePattern),
+                    cb.like(cb.lower(root.get("description")), likePattern)
                 ));
             }
+
+            // Type filter
             if (typeId != null) {
                 predicates.add(cb.equal(root.get("type").get("id"), typeId));
             }
-            predicates.add(cb.equal(root.get("isDeleted"), false)); // Respect the logic that previously used a SQL restrict or needs to exclude deleted
+
+            // Status filter — supports MAINTENANCE to also match OUT_OF_SERVICE
+            if (status != null && !status.isBlank() && !status.equalsIgnoreCase("ALL")) {
+                try {
+                    ResourceStatus rs = ResourceStatus.valueOf(status.toUpperCase());
+                    if (rs == ResourceStatus.MAINTENANCE) {
+                        // Group MAINTENANCE + OUT_OF_SERVICE under the same UI filter
+                        predicates.add(cb.or(
+                            cb.equal(root.get("status"), ResourceStatus.MAINTENANCE),
+                            cb.equal(root.get("status"), ResourceStatus.OUT_OF_SERVICE)
+                        ));
+                    } else {
+                        predicates.add(cb.equal(root.get("status"), rs));
+                    }
+                } catch (IllegalArgumentException ignored) {
+                    log.warn("Unknown status filter value: {}", status);
+                }
+            }
+
+            // Soft-delete guard (belt-and-suspenders alongside @SQLRestriction)
+            predicates.add(cb.equal(root.get("isDeleted"), false));
+
             return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
 
@@ -129,6 +168,20 @@ public class ResourceServiceImpl implements ResourceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + id));
         resource.setDeleted(true);
         resourceRepository.save(resource);
+    }
+
+    @Override
+    public ResourceDto patchStatus(Long id, String status) {
+        log.info("Patching status of resource ID: {} to {}", id, status);
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + id));
+        try {
+            resource.setStatus(ResourceStatus.valueOf(status));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
+        resource = resourceRepository.save(resource);
+        return mapToDto(resource);
     }
 
     private ResourceDto mapToDto(Resource resource) {

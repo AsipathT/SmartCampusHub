@@ -6,58 +6,83 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 
-// Actual facilities pages imports
-import { Dashboard } from './pages/facilities/Dashboard';
+// Facilities
+import { Dashboard as AdminDashboard } from './pages/facilities/Dashboard';
 import { ResourceList } from './pages/facilities/ResourceList';
 import { AddResource } from './pages/facilities/AddResource';
 import { EditResource } from './pages/facilities/EditResource';
 import { ManageResources } from './pages/facilities/ManageResources';
-import { MyBookings } from './pages/facilities/MyBookings';
-import { ManageBookings } from './pages/facilities/ManageBookings';
 import { ResourceDetails } from './pages/facilities/ResourceDetails';
 
-// Blank
+// User
+import { UserDashboard } from './pages/user/UserDashboard';
+import { BrowseResources } from './pages/user/BrowseResources';
+import { UserProfile } from './pages/user/UserProfile';
+
+// Booking pages
+import { AddBooking } from './pages/bookings/AddBooking';
+import { MyBookings } from './pages/bookings/MyBookings';
+import { ManageBookings } from './pages/bookings/ManageBookings';
+import { BookingDashboard } from './pages/bookings/BookingDashboard';
+import { AdminBookingDashboard } from './pages/bookings/AdminBookingDashboard';
+import { BookingNotifications } from './pages/bookings/BookingNotifications';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      {/* AuthProvider wraps everything to provide authentication context */}
       <AuthProvider>
-        {/* Global Toasts Notifications */}
-        <Toaster position="top-right" toastOptions={{ className: 'text-sm font-medium', duration: 3000 }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            className: 'text-sm font-medium',
+            duration: 3000,
+          }}
+        />
 
         <Routes>
-          {/* Public Route */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-          {/* Protected Application Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<MainLayout />}>
-              
-              {/* Redirect /app to dashboard */}
-              <Route index element={<Navigate to="/app/facilities/dashboard" replace />} />
-              
-              {/* Facilities & Assets Module Routes */}
-              <Route path="facilities/dashboard" element={<Dashboard />} />
-              <Route path="facilities/resources" element={<ResourceList />} />
-              <Route path="facilities/resources/add" element={<AddResource />} />
-              <Route path="facilities/resources/manage" element={<ProtectedRoute requiredRole="ADMIN" />} >
-                 <Route index element={<ManageResources />} />
-                 <Route path="edit/:id" element={<EditResource />} />
+              <Route index element={<Navigate to="/app/admin/dashboard" replace />} />
+
+              {/* ADMIN */}
+              <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                <Route path="admin/dashboard" element={<AdminDashboard />} />
+                <Route path="facilities/resources" element={<ResourceList />} />
+                <Route path="facilities/resources/add" element={<AddResource />} />
+                <Route path="facilities/resources/manage" element={<ManageResources />} />
+                <Route path="facilities/resources/manage/edit/:id" element={<EditResource />} />
+
+                {/* ADMIN BOOKING PAGES */}
+                <Route path="bookings/admin-dashboard" element={<AdminBookingDashboard />} />
+                <Route path="bookings/manage" element={<ManageBookings />} />
               </Route>
-              <Route path="facilities/resources/:id" element={<ResourceDetails />} />
-              <Route path="facilities/bookings/my" element={<MyBookings />} />
-              <Route path="facilities/bookings/manage" element={<ProtectedRoute requiredRole="ADMIN" />}>
-                 <Route index element={<ManageBookings />} />
+
+              {/* SHARED */}
+              <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'USER']} />}>
+                <Route path="facilities/resources/:id" element={<ResourceDetails />} />
+                <Route path="profile" element={<UserProfile />} />
+                <Route path="bookings/add" element={<AddBooking />} />
               </Route>
-              
-              {/* Other modules placeholders */}
+
+              {/* USER */}
+              <Route element={<ProtectedRoute allowedRoles={['USER']} />}>
+                <Route path="user/dashboard" element={<UserDashboard />} />
+                <Route path="user/browse" element={<BrowseResources />} />
+
+                {/* USER BOOKING PAGES */}
+                <Route path="bookings/dashboard" element={<BookingDashboard />} />
+                <Route path="bookings/my" element={<MyBookings />} />
+                <Route path="bookings/notifications" element={<BookingNotifications />} />
+              </Route>
             </Route>
           </Route>
 
-          {/* Fallback 404 Route */}
-          <Route path="*" element={<Navigate to="/app/facilities/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

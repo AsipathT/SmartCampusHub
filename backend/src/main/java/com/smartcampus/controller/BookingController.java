@@ -1,6 +1,7 @@
 package com.smartcampus.controller;
 
 import com.smartcampus.dto.BookingDto;
+import com.smartcampus.dto.BookingStatusUpdateRequest;
 import com.smartcampus.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class BookingController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingDto>> getUserBookings(@PathVariable("userId") Long userId) {
+    public ResponseEntity<List<BookingDto>> getUserBookings(@PathVariable Long userId) {
         return ResponseEntity.ok(bookingService.getUserBookings(userId));
     }
 
@@ -33,14 +34,17 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(dto));
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<BookingDto> updateBookingStatus(@PathVariable("id") Long id, @RequestParam("status") String status) {
-        return ResponseEntity.ok(bookingService.updateBookingStatus(id, status));
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<BookingDto> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody BookingStatusUpdateRequest request
+    ) {
+        return ResponseEntity.ok(bookingService.updateBookingStatus(id, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable("id") Long id) {
-        bookingService.deleteBooking(id);
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
+        bookingService.cancelBooking(id);
         return ResponseEntity.noContent().build();
     }
 }
