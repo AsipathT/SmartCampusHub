@@ -8,7 +8,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 
-// ── Admin pages ────────────────────────────────────────────────────────────────
+// Facilities
 import { Dashboard as AdminDashboard } from './pages/facilities/Dashboard';
 import { ResourceList } from './pages/facilities/ResourceList';
 import { AddResource } from './pages/facilities/AddResource';
@@ -16,17 +16,23 @@ import { EditResource } from './pages/facilities/EditResource';
 import { ManageResources } from './pages/facilities/ManageResources';
 import { ResourceDetails } from './pages/facilities/ResourceDetails';
 
-// ── User pages ─────────────────────────────────────────────────────────────────
+// User
 import { UserDashboard } from './pages/user/UserDashboard';
 import { BrowseResources } from './pages/user/BrowseResources';
 import { UserProfile } from './pages/user/UserProfile';
 
+// Booking pages
+import { AddBooking } from './pages/bookings/AddBooking';
+import { MyBookings } from './pages/bookings/MyBookings';
+import { ManageBookings } from './pages/bookings/ManageBookings';
+import { BookingDashboard } from './pages/bookings/BookingDashboard';
+import { AdminBookingDashboard } from './pages/bookings/AdminBookingDashboard';
+import { BookingNotifications } from './pages/bookings/BookingNotifications';
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      {/* AuthProvider wraps everything to provide authentication context */}
       <AuthProvider>
-        {/* Global Toast Notifications */}
         <Toaster
           position="top-right"
           toastOptions={{
@@ -36,46 +42,46 @@ const App: React.FC = () => {
         />
 
         <Routes>
-          {/* ── Public Routes ──────────────────────────────────────────────── */}
-          <Route path="/login"    element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ── Protected Application Shell ─────────────────────────────────
-              This outer ProtectedRoute only checks authentication.
-              Inner ProtectedRoutes add role-based access control.
-          ───────────────────────────────────────────────────────────────── */}
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<MainLayout />}>
-
-              {/* Default redirect — role-aware redirect is handled by Login,
-                  but guard against direct /app access */}
               <Route index element={<Navigate to="/app/admin/dashboard" replace />} />
 
-              {/* ── ADMIN Routes (ADMIN only) ─────────────────────────────── */}
+              {/* ADMIN */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route path="admin/dashboard" element={<AdminDashboard />} />
                 <Route path="facilities/resources" element={<ResourceList />} />
                 <Route path="facilities/resources/add" element={<AddResource />} />
                 <Route path="facilities/resources/manage" element={<ManageResources />} />
                 <Route path="facilities/resources/manage/edit/:id" element={<EditResource />} />
+
+                {/* ADMIN BOOKING PAGES */}
+                <Route path="bookings/admin-dashboard" element={<AdminBookingDashboard />} />
+                <Route path="bookings/manage" element={<ManageBookings />} />
               </Route>
 
-              {/* ── Shared Routes (ADMIN + USER) ──────────────────────────── */}
+              {/* SHARED */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'USER']} />}>
                 <Route path="facilities/resources/:id" element={<ResourceDetails />} />
                 <Route path="profile" element={<UserProfile />} />
+                <Route path="bookings/add" element={<AddBooking />} />
               </Route>
 
-              {/* ── USER Routes (USER only, ADMIN can also access via bypass) */}
-              <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>
+              {/* USER */}
+              <Route element={<ProtectedRoute allowedRoles={['USER']} />}>
                 <Route path="user/dashboard" element={<UserDashboard />} />
                 <Route path="user/browse" element={<BrowseResources />} />
-              </Route>
 
+                {/* USER BOOKING PAGES */}
+                <Route path="bookings/dashboard" element={<BookingDashboard />} />
+                <Route path="bookings/my" element={<MyBookings />} />
+                <Route path="bookings/notifications" element={<BookingNotifications />} />
+              </Route>
             </Route>
           </Route>
 
-          {/* ── Fallback ────────────────────────────────────────────────────── */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>

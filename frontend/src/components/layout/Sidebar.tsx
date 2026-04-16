@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, User as UserIcon, Bell } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUnreadCount } from '../../api/notificationApi';
 import { getNavConfig, NavGroup } from '../../config/navigation';
 import { UserRole } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 // ── Role Badge ─────────────────────────────────────────────────────────────────
 const RoleBadge: React.FC<{ role: UserRole }> = ({ role }) => {
   const styles: Record<UserRole, string> = {
     ADMIN: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
-    USER:  'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    USER: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
   };
+
   const labels: Record<UserRole, string> = {
     ADMIN: 'Admin',
-    USER:  'Student',
+    USER: 'Student',
   };
+
   return (
     <span
       className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${styles[role]}`}
@@ -33,14 +34,12 @@ const SidebarGroup: React.FC<{ group: NavGroup }> = ({ group }) => {
   const isAnyActive = group.items.some((item) => location.pathname.startsWith(item.path));
   const [open, setOpen] = useState(group.defaultOpen ?? true);
 
-  // Auto-expand if a child route is active
   useEffect(() => {
     if (isAnyActive) setOpen(true);
   }, [isAnyActive]);
 
   return (
     <div className="space-y-1">
-      {/* Group Toggle Header */}
       <button
         onClick={() => setOpen(!open)}
         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 ${
@@ -56,11 +55,12 @@ const SidebarGroup: React.FC<{ group: NavGroup }> = ({ group }) => {
         </div>
         <ChevronDown
           size={15}
-          className={`transition-transform duration-300 ${open ? 'rotate-180 text-indigo-400' : 'text-slate-500'}`}
+          className={`transition-transform duration-300 ${
+            open ? 'rotate-180 text-indigo-400' : 'text-slate-500'
+          }`}
         />
       </button>
 
-      {/* Collapsible Items */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
@@ -93,7 +93,6 @@ const SidebarGroup: React.FC<{ group: NavGroup }> = ({ group }) => {
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 interface SidebarProps {
-  /** Controlled from MainLayout for mobile overlay */
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
@@ -108,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
     if (user?.id) {
       getUnreadCount(user.id)
         .then(setUnreadCount)
-        .catch(() => console.error("Failed to fetch unread notifications"));
+        .catch(() => console.error('Failed to fetch unread notifications'));
     }
   }, [user]);
 
@@ -120,16 +119,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
 
   const sidebarContent = (
     <aside className="w-72 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col h-full shadow-2xl z-20">
-      {/* ── Brand ─────────────────────────────────────────────────────────── */}
+      {/* Brand */}
       <div className="h-16 flex items-center px-5 border-b border-slate-800 bg-slate-950/60 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #4f46e5, #818cf8)' }}
           >
-            {/* Building icon inline to avoid import issues */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 22V12h6v10M9 12h6M3 9h18"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 22V12h6v10M9 12h6M3 9h18" />
             </svg>
           </div>
           <div>
@@ -141,21 +150,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
         </div>
       </div>
 
-      {/* ── User Profile Strip ────────────────────────────────────────────── */}
-      <div 
+      {/* User Profile Strip */}
+      <div
         onClick={() => navigate('/app/profile')}
         className="px-4 py-4 border-b border-slate-800 bg-slate-950/30 flex-shrink-0 cursor-pointer hover:bg-slate-800/40 transition-colors group"
       >
         <div className="flex items-center gap-3">
           {user?.profileImage ? (
-            <img src={user.profileImage} alt={user.name || 'User'} className="w-9 h-9 rounded-xl object-cover flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md" />
+            <img
+              src={user.profileImage}
+              alt={user.name || 'User'}
+              className="w-9 h-9 rounded-xl object-cover flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md"
+            />
           ) : (
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 border border-slate-600 group-hover:border-indigo-400 transition-colors shadow-md">
               <UserIcon size={16} className="text-slate-300 group-hover:text-indigo-300 transition-colors" />
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">{user?.name || 'Guest'}</p>
+            <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+              {user?.name || 'Guest'}
+            </p>
             <p className="text-xs text-slate-500 truncate">{user?.email}</p>
           </div>
           <div className="flex flex-col items-end gap-1.5">
@@ -170,9 +185,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
         </div>
       </div>
 
-      {/* ── Navigation ────────────────────────────────────────────────────── */}
+      {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-5 px-3 space-y-6 custom-scrollbar">
-        {/* Section label */}
         <div className="px-2">
           <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-3">
             Navigation
@@ -185,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
         </div>
       </div>
 
-      {/* ── Footer ────────────────────────────────────────────────────────── */}
+      {/* Footer */}
       <div className="p-4 border-t border-slate-800 bg-slate-950/30 flex-shrink-0">
         <button
           onClick={handleLogout}
@@ -203,12 +217,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
 
   return (
     <>
-      {/* Desktop: always visible */}
       <div className="hidden md:flex h-full">
         {sidebarContent}
       </div>
 
-      {/* Mobile: overlay drawer */}
       {mobileOpen && (
         <>
           <div
