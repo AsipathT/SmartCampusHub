@@ -26,9 +26,14 @@ import {
   Clock,
   GraduationCap,
   Wifi,
+  FileSpreadsheet,
+  FileText,
+  Download,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 import { Resource } from '../../types/resource';
+import { exportCSV, exportPDF } from '../../utils/reportExport';
 
 // ─── Colour tokens ────────────────────────────────────────────────────────────
 const PIE_COLOURS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#3b82f6', '#8b5cf6'];
@@ -280,6 +285,61 @@ export const Dashboard: React.FC = () => {
 
       {/* ══ BODY ═══════════════════════════════════════════════════════════════ */}
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+        {/* ── EXPORT ACTION BAR ────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Download size={20} className="text-indigo-600" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-800 text-sm">Download Report</p>
+              <p className="text-xs text-slate-400">
+                {resources.length} resources · Generated {lastUpdated.toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              id="export-csv-btn"
+              onClick={() => {
+                if (!resources.length) { toast.error('No data to export yet. Please wait for data to load.'); return; }
+                exportCSV(resources, 'Facilities_Dashboard');
+                Swal.fire({
+                  title: 'Download Successful!',
+                  text: `CSV Report containing ${resources.length} records has been downloaded.`,
+                  icon: 'success',
+                  confirmButtonColor: '#4f46e5',
+                  confirmButtonText: 'Great!',
+                  timer: 3000,
+                  timerProgressBar: true
+                });
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-sm"
+            >
+              <FileSpreadsheet size={16} /> Export CSV
+            </button>
+            <button
+              id="export-pdf-btn"
+              onClick={() => {
+                if (!resources.length) { toast.error('No data to export yet. Please wait for data to load.'); return; }
+                exportPDF(resources, 'Facilities_Dashboard', stats);
+                Swal.fire({
+                  title: 'Download Successful!',
+                  text: `PDF Report containing ${resources.length} records has been downloaded.`,
+                  icon: 'success',
+                  confirmButtonColor: '#4f46e5',
+                  confirmButtonText: 'Great!',
+                  timer: 3000,
+                  timerProgressBar: true
+                });
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-sm"
+            >
+              <FileText size={16} /> Export PDF
+            </button>
+          </div>
+        </div>
 
         {/* ── KPI CARDS ───────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 -mt-2">
