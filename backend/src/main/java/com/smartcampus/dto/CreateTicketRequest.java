@@ -1,6 +1,5 @@
 package com.smartcampus.dto;
 
-import com.smartcampus.model.enums.TicketPriority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,12 +19,19 @@ public class CreateTicketRequest {
     @Size(max = 3000)
     private String description;
 
-    @NotNull
-    private TicketPriority priority;
+    @NotBlank
+    @Size(max = 120)
+    private String contactName;
 
     @NotBlank
-    @Size(max = 255)
-    private String preferredContactDetails;
+    @Size(max = 40)
+    private String contactNumber;
+
+    @NotNull
+    private Double pinLatitude;
+
+    @NotNull
+    private Double pinLongitude;
 
     @NotNull
     private Long reporterUserId;
