@@ -1,23 +1,31 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getNotifications, markAllAsRead, markAsReadForUser } from '../../api/notificationApi';
+import { getNotifications, markAllAsRead, markAsReadForUser, Notification } from '../../api/notificationApi';
 import {
   Bell,
   BellOff,
   CheckCheck,
   ChevronDown,
+  ChevronRight,
+  FilePlus2,
   Filter,
   Inbox,
   MessageSquare,
+  Pencil,
   ShieldCheck,
   ShieldX,
   TicketCheck,
+  Trash2,
+  UserCheck,
+  Zap,
 } from 'lucide-react';
 
 export const AdminNotifications: React.FC = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState('ALL');
   const [error, setError] = useState<string | null>(null);
@@ -59,20 +67,28 @@ export const AdminNotifications: React.FC = () => {
     }
   };
 
+  const openNotification = (n: Notification) => {
+    if (!n.read) markOne(n.id);
+    if (n.relatedEntityType === 'TICKET' && n.relatedEntityId) {
+      if (n.type === 'TICKET_DELETED') {
+        navigate('/app/admin/incidents/manage');
+      } else {
+        navigate(`/app/admin/incidents/${n.relatedEntityId}`);
+      }
+    } else if (n.relatedEntityType === 'BOOKING' && n.relatedEntityId) {
+      navigate('/app/admin/bookings/manage');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50/20 px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-4xl mx-auto space-y-6">
 
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-card-enter">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-200/50">
-              <Bell size={22} />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Notifications</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Incident and booking updates for operations</p>
-            </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Notifications</h1>
+            <p className="text-sm text-slate-500 mt-0.5">Incident and booking updates for operations</p>
           </div>
           <button
             onClick={markAll}
@@ -84,17 +100,16 @@ export const AdminNotifications: React.FC = () => {
           </button>
         </div>
 
-        {/* ── Stats banner ── */}
+        {/* ── Stats ── */}
         <div className="grid grid-cols-2 gap-4 animate-card-enter" style={{ animationDelay: '60ms' }}>
-          <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-5 shadow-lg shadow-indigo-200/40">
-            <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-            <div className="relative flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-indigo-200 uppercase tracking-widest">Unread</p>
-                <p className="text-3xl font-extrabold text-white mt-1 animate-pop-in">{unread}</p>
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Unread</p>
+                <p className="text-3xl font-extrabold text-slate-900 mt-1">{unread}</p>
               </div>
-              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm">
-                <Bell size={22} className="text-white" />
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 text-slate-500">
+                <Bell size={22} />
               </div>
             </div>
           </div>
@@ -123,10 +138,15 @@ export const AdminNotifications: React.FC = () => {
                 className="w-full appearance-none bg-slate-50/80 border border-slate-200 rounded-xl pl-3.5 pr-9 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all cursor-pointer"
               >
                 <option value="ALL">All Types</option>
+                <option value="TICKET_CREATED">New Ticket</option>
+                <option value="TICKET_UPDATED">Ticket Updated by Reporter</option>
+                <option value="TICKET_DELETED">Ticket Removed</option>
+                <option value="TICKET_STATUS_CHANGED">Ticket Status Changed</option>
+                <option value="TICKET_PRIORITY_CHANGED">Ticket Priority Changed</option>
+                <option value="TICKET_ASSIGNED">Technician Assigned</option>
+                <option value="TICKET_NEW_COMMENT">New Comment</option>
                 <option value="BOOKING_APPROVED">Booking Approved</option>
                 <option value="BOOKING_REJECTED">Booking Rejected</option>
-                <option value="TICKET_STATUS_CHANGED">Ticket Status Changed</option>
-                <option value="TICKET_NEW_COMMENT">Ticket New Comment</option>
               </select>
               <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -154,9 +174,11 @@ export const AdminNotifications: React.FC = () => {
             </div>
           ) : (
             items.map((n, i) => (
-              <div
+              <button
+                type="button"
                 key={n.id}
-                className={`group relative rounded-2xl p-5 transition-all duration-200 animate-card-enter ${
+                onClick={() => openNotification(n)}
+                className={`group relative w-full text-left rounded-2xl p-5 transition-all duration-200 animate-card-enter hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${
                   n.read
                     ? 'bg-white/70 border border-slate-200/50 hover:border-slate-300/60'
                     : 'bg-gradient-to-r from-indigo-50/80 to-violet-50/60 border border-indigo-200/60 hover:border-indigo-300 shadow-sm shadow-indigo-100/30'
@@ -188,15 +210,16 @@ export const AdminNotifications: React.FC = () => {
                         </p>
                       </div>
                       {!n.read && (
-                        <button
-                          onClick={() => markOne(n.id)}
+                        <span
+                          role="button"
+                          onClick={(e) => { e.stopPropagation(); markOne(n.id); }}
                           className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
                         >
                           Mark read
-                        </button>
+                        </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-2.5">
+                    <div className="flex items-center gap-3 mt-2.5 flex-wrap">
                       <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
                         n.read
                           ? 'bg-slate-50 text-slate-500 border-slate-200'
@@ -207,10 +230,16 @@ export const AdminNotifications: React.FC = () => {
                       <span className="text-xs text-slate-400">
                         {new Date(n.createdAt).toLocaleString()}
                       </span>
+                      {n.relatedEntityType === 'TICKET' && n.relatedEntityId && (
+                        <span className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {n.type === 'TICKET_DELETED' ? 'Open queue' : `Open ticket #${n.relatedEntityId}`}
+                          <ChevronRight size={12} />
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -221,10 +250,15 @@ export const AdminNotifications: React.FC = () => {
 
 const NotifIcon: React.FC<{ type?: string }> = ({ type }) => {
   switch (type) {
-    case 'BOOKING_APPROVED':  return <ShieldCheck size={18} />;
-    case 'BOOKING_REJECTED':  return <ShieldX size={18} />;
-    case 'TICKET_STATUS_CHANGED': return <TicketCheck size={18} />;
-    case 'TICKET_NEW_COMMENT':    return <MessageSquare size={18} />;
+    case 'BOOKING_APPROVED':        return <ShieldCheck size={18} />;
+    case 'BOOKING_REJECTED':        return <ShieldX size={18} />;
+    case 'TICKET_STATUS_CHANGED':   return <TicketCheck size={18} />;
+    case 'TICKET_PRIORITY_CHANGED': return <Zap size={18} />;
+    case 'TICKET_NEW_COMMENT':      return <MessageSquare size={18} />;
+    case 'TICKET_ASSIGNED':         return <UserCheck size={18} />;
+    case 'TICKET_CREATED':          return <FilePlus2 size={18} />;
+    case 'TICKET_UPDATED':          return <Pencil size={18} />;
+    case 'TICKET_DELETED':          return <Trash2 size={18} />;
     default: return <Bell size={18} />;
   }
 };
