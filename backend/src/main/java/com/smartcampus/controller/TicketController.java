@@ -36,6 +36,12 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.listTickets(reporterUserId, assignedStaffId, status, priority, search));
     }
 
+    @GetMapping("/assignees")
+    public ResponseEntity<List<IncidentAssigneeOptionDto>> listAssignableStaff(
+            @RequestParam(required = false) String category) {
+        return ResponseEntity.ok(ticketService.listAssignableStaff(category));
+    }
+
     @GetMapping("/{ticketId}")
     public ResponseEntity<TicketResponseDto> getTicketById(
             @PathVariable Long ticketId,
@@ -55,6 +61,14 @@ public class TicketController {
             @PathVariable Long ticketId,
             @Valid @RequestBody AssignTicketRequest request) {
         return ResponseEntity.ok(ticketService.assignTicket(ticketId, request));
+    }
+
+    @DeleteMapping("/{ticketId}")
+    public ResponseEntity<Void> deleteTicket(
+            @PathVariable Long ticketId,
+            @Valid @RequestBody DeleteTicketRequest request) {
+        ticketService.deleteTicket(ticketId, request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/{ticketId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
