@@ -3,16 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, User, UserRole } from '../contexts/AuthContext';
 import { Building2, Lock, Mail, ArrowRight, Eye, EyeOff, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 import { getNavConfig } from '../config/navigation';
-import { loginUser } from '../api/authApi';
+import { loginUser, googleLogin } from '../api/authApi';
 import { LoginSuccessPopup } from '../components/common/LoginSuccessPopup';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [emailError, setEmailError] = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [emailError, setEmailError]     = useState('');
 
   // Success popup state
   const [successData, setSuccessData] = useState<{
@@ -35,7 +37,7 @@ export const Login: React.FC = () => {
     const studentRegex = /^[a-zA-Z0-9._%+\-]+@my\.sliit\.lk$/;
     const adminRegex   = /^[a-zA-Z0-9._%+\-]+@smartcampus\.edu$/;
     if (!studentRegex.test(val) && !adminRegex.test(val)) {
-      setEmailError('Use your SLIIT student email (it23145870@my.sliit.lk)');
+      setEmailError('Use your SLIIT email (@my.sliit.lk for students, @smartcampus.edu for staff)');
     } else {
       setEmailError('');
     }
@@ -56,10 +58,11 @@ export const Login: React.FC = () => {
       const data = await loginUser({ email, password });
 
       const userObj: User = {
-        id:    data.id,
-        name:  data.fullName,
-        email: data.email,
-        role:  data.role as UserRole,
+        id:           data.id,
+        name:         data.fullName,
+        email:        data.email,
+        role:         data.role as UserRole,
+        profileImage: data.profileImage,
       };
 
       login(userObj, data.token);
@@ -92,6 +95,34 @@ export const Login: React.FC = () => {
       navigate(successData.defaultRoute, { replace: true });
     }
     setSuccessData(null);
+  };
+
+  // ── Google OAuth ──────────────────────────────────────────────────────────
+  const handleGoogleSuccess = async (credential: string) => {
+    setGoogleLoading(true);
+    try {
+      const data = await googleLogin(credential);
+      const userObj: User = {
+        id:           data.id,
+        name:         data.fullName,
+        email:        data.email,
+        role:         data.role as UserRole,
+        profileImage: data.profileImage,
+      };
+      login(userObj, data.token);
+      const navConfig = getNavConfig(userObj.role);
+      setSuccessData({
+        name:         data.fullName,
+        message:      data.message,
+        role:         userObj.role,
+        defaultRoute: navConfig.defaultRoute,
+      });
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Google sign-in failed. Please try again.';
+      toast.error(msg, { duration: 5000 });
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -223,6 +254,45 @@ export const Login: React.FC = () => {
                   )}
                 </button>
               </form>
+
+              {/* Google Sign-In divider */}
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-xs text-slate-400 font-medium">or continue with</span>
+                <div className="flex-1 h-px bg-slate-200" />
+              </div>
+
+              {/* Google Sign-In button */}
+              <div className="w-full">
+                {googleLoading ? (
+                  <div className="w-full py-3 rounded-xl border-2 border-slate-200 flex items-center justify-center gap-2 text-sm font-semibold text-slate-500">
+                    <svg className="animate-spin h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing in with Google…
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={(credentialResponse) => {
+                        if (credentialResponse.credential) {
+                          handleGoogleSuccess(credentialResponse.credential);
+                        }
+                      }}
+                      onError={() => toast.error('Google sign-in was cancelled or failed.')}
+                      theme="outline"
+                      size="large"
+                      width="368"
+                      text="signin_with"
+                      shape="rectangular"
+                    />
+                  </div>
+                )}
+                <p className="text-[11px] text-slate-400 text-center mt-2">
+                  Students only · Must use <code className="bg-slate-100 px-1 rounded text-emerald-600">@my.sliit.lk</code> Google account
+                </p>
+              </div>
 
               {/* Divider */}
               <div className="flex items-center gap-3 my-6">
