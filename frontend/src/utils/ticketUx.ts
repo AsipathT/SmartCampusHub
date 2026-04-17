@@ -15,7 +15,6 @@ export const formatDuration = (ms: number): string => {
 
 export const getSlaHours = (priority: Ticket['priority']): number => {
   switch (priority) {
-    case 'CRITICAL': return 4;
     case 'HIGH': return 8;
     case 'MEDIUM': return 24;
     default: return 48;
@@ -23,7 +22,7 @@ export const getSlaHours = (priority: Ticket['priority']): number => {
 };
 
 export const getSlaState = (ticket: Ticket): 'ok' | 'warning' | 'breached' => {
-  if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' || ticket.status === 'REJECTED') return 'ok';
+  if (ticket.status === 'RESOLVED' || ticket.status === 'REJECTED') return 'ok';
   const ageHours = getTicketAgeMs(ticket) / 3600000;
   const slaHours = getSlaHours(ticket.priority);
   if (ageHours > slaHours) return 'breached';
