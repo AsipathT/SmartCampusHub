@@ -1,6 +1,7 @@
 package com.smartcampus.controller;
 
 import com.smartcampus.dto.AuthResponse;
+import com.smartcampus.dto.GoogleAuthRequest;
 import com.smartcampus.dto.LoginRequest;
 import com.smartcampus.dto.RegisterRequest;
 import com.smartcampus.service.AuthService;
@@ -53,6 +54,12 @@ public class AuthController {
      * PUT /api/v1/auth/profile/{id}
      * Update user profile information.
      */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleLogin(@RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.googleLogin(request.getCredential());
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/profile/{id}")
     public ResponseEntity<AuthResponse> updateProfile(
             @PathVariable Long id,
