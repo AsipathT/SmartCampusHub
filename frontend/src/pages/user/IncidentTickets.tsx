@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Paperclip, Plus, Search } from 'lucide-react';
 import { listTickets } from '../../api/ticketApi';
-import { getUnreadCount } from '../../api/notificationApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ticket, TicketPriority, TicketStatus } from '../../types/ticket';
 import { PriorityBadge, StatusPill } from '../../components/incidents/TicketVisuals';
@@ -17,7 +16,6 @@ export const IncidentTickets: React.FC = () => {
   const [status, setStatus] = useState<string>('ALL');
   const [priority, setPriority] = useState<string>('ALL');
   const [error, setError] = useState<string | null>(null);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -30,11 +28,6 @@ export const IncidentTickets: React.FC = () => {
         toast.error('Failed to load incident tickets');
       })
       .finally(() => setLoading(false));
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    getUnreadCount(user.id).then(setUnreadNotifications).catch(() => null);
   }, [user?.id]);
 
   const filtered = useMemo(() => {
@@ -54,9 +47,9 @@ export const IncidentTickets: React.FC = () => {
 
   const summary = useMemo(
     () => ({
-      open: tickets.filter((t) => t.status === 'OPEN').length,
       progress: tickets.filter((t) => t.status === 'IN_PROGRESS').length,
       resolved: tickets.filter((t) => t.status === 'RESOLVED').length,
+      rejected: tickets.filter((t) => t.status === 'REJECTED').length,
     }),
     [tickets]
   );
@@ -64,13 +57,9 @@ export const IncidentTickets: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-sky-50 to-slate-50 px-6 py-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 bg-white/80 border border-indigo-100 rounded-2xl p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Incident Tickets</h1>
-            <p className="text-sm text-slate-500 mt-1">Manage and track your maintenance requests</p>
-            <p className="text-xs text-blue-600 mt-2 font-medium">
-              Notifications unread: {unreadNotifications}
-            </p>
           </div>
           <Link
             to="/app/user/incidents/report"
@@ -82,9 +71,9 @@ export const IncidentTickets: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard label="Open Tickets" value={summary.open} />
           <StatCard label="In Progress" value={summary.progress} />
           <StatCard label="Resolved" value={summary.resolved} />
+          <StatCard label="Rejected" value={summary.rejected} />
         </div>
 
         <div className="bg-white border border-indigo-100 rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row gap-3 shadow-sm">
@@ -103,7 +92,7 @@ export const IncidentTickets: React.FC = () => {
             className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
           >
             <option value="ALL">All Statuses</option>
-            {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED'].map((s) => (
+            {['IN_PROGRESS', 'RESOLVED', 'REJECTED'].map((s) => (
               <option key={s} value={s}>{s.replace('_', ' ')}</option>
             ))}
           </select>
@@ -113,7 +102,7 @@ export const IncidentTickets: React.FC = () => {
             className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
           >
             <option value="ALL">All Priorities</option>
-            {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((p) => (
+            {['LOW', 'MEDIUM', 'HIGH'].map((p) => (
               <option key={p} value={p}>{p}</option>
             ))}
           </select>
@@ -158,6 +147,13 @@ export const IncidentTickets: React.FC = () => {
                   <PriorityBadge priority={ticket.priority as TicketPriority} />
                 </div>
                 <p className="text-sm text-slate-600 mt-2 line-clamp-2">{ticket.description}</p>
+                <p className="mt-2 text-xs text-slate-600">
+                  Assigned to:{' '}
+                  <span className="font-medium text-slate-800">
+                    {ticket.assignedStaffProfile?.fullName ||
+                      (ticket.assignedStaffId ? `User #${ticket.assignedStaffId}` : 'Not assigned yet')}
+                  </span>
+                </p>
                 <div className="mt-3 text-xs text-slate-500 flex items-center justify-between">
                   <span>{ticket.location}</span>
                   <span>{new Date(ticket.createdAt).toLocaleString()}</span>
