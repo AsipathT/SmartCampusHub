@@ -13,8 +13,6 @@ import {
   MessageSquare,
   Paperclip,
   Search,
-  Settings2,
-  TicketCheck,
   User2,
 } from 'lucide-react';
 
@@ -43,7 +41,12 @@ export const ManageTickets: React.FC = () => {
   const categories = useMemo(() => [...new Set(tickets.map((t) => t.category))], [tickets]);
   const filtered = useMemo(() => tickets.filter((t) => {
     const q = search.toLowerCase();
-    const searchOk = !q || String(t.id).includes(q) || t.description.toLowerCase().includes(q);
+    const searchOk =
+      !q ||
+      String(t.id).includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      (t.contactName && t.contactName.toLowerCase().includes(q)) ||
+      (t.contactNumber && t.contactNumber.includes(q));
     const statusOk = status === 'ALL' || t.status === status;
     const priorityOk = priority === 'ALL' || t.priority === priority;
     const categoryOk = category === 'ALL' || t.category === category;
@@ -61,18 +64,8 @@ export const ManageTickets: React.FC = () => {
 
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-card-enter">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-200/50">
-              <Settings2 size={22} />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Manage Tickets</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Search, filter, assign, and manage incident workflow</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <TicketCheck size={16} className="text-indigo-500" />
-            <span className="font-semibold text-slate-700">{filtered.length}</span> of {tickets.length} tickets
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Manage Tickets</h1>
           </div>
         </div>
 
@@ -97,8 +90,8 @@ export const ManageTickets: React.FC = () => {
                 className="w-full bg-slate-50/80 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all"
               />
             </div>
-            <StyledSelect value={status} setValue={setStatus} options={['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']} />
-            <StyledSelect value={priority} setValue={setPriority} options={['ALL', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']} />
+            <StyledSelect value={status} setValue={setStatus} options={['ALL', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']} />
+            <StyledSelect value={priority} setValue={setPriority} options={['ALL', 'LOW', 'MEDIUM', 'HIGH']} />
             <StyledSelect value={category} setValue={setCategory} options={['ALL', ...categories]} />
             <StyledSelect value={assignment} setValue={setAssignment} options={['ALL', 'ASSIGNED', 'UNASSIGNED']} />
           </div>
