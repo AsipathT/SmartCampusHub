@@ -10,4 +10,5 @@ import java.util.List;
 public interface TicketAttachmentRepository extends JpaRepository<TicketAttachment, Long> {
     List<TicketAttachment> findByTicketIdOrderByCreatedAtAsc(Long ticketId);
     long countByTicketId(Long ticketId);
+    long deleteByTicketId(Long ticketId);
 }
