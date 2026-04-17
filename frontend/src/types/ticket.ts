@@ -1,5 +1,5 @@
-export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED' | 'REJECTED';
-export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type TicketStatus = 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface TicketAttachment {
   id: number;
@@ -19,18 +19,34 @@ export interface TicketComment {
   owner: boolean;
 }
 
+export interface IncidentAssigneeOption {
+  userId: number;
+  fullName: string;
+  age: number;
+  qualification: string;
+  yearsOfExperience: number;
+  specialistSkills: string;
+  contactNumber: string;
+  supportedCategories: string;
+}
+
 export interface Ticket {
   id: number;
   location: string;
   category: string;
   description: string;
   priority: TicketPriority;
-  preferredContactDetails: string;
+  preferredContactDetails?: string | null;
+  contactName?: string | null;
+  contactNumber?: string | null;
+  pinLatitude?: number | null;
+  pinLongitude?: number | null;
   status: TicketStatus;
   rejectionReason?: string | null;
   resolutionNotes?: string | null;
   reporterUserId: number;
   assignedStaffId?: number | null;
+  assignedStaffProfile?: IncidentAssigneeOption | null;
   createdAt: string;
   updatedAt: string;
   attachmentCount: number;
