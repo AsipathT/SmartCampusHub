@@ -5,12 +5,13 @@ import {
   Settings,
   Box,
   Search,
+  ClipboardList,
+  CalendarDays,
+  Users,
   Wrench,
   Bell,
-  ClipboardList,
   Ticket,
   MapPin,
-  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
@@ -81,39 +82,18 @@ const ADMIN_NAV: RoleNavConfig = {
       ],
     },
     {
-      id: 'incident-admin',
-      label: 'Incident Operations',
-      icon: Wrench,
+      id: 'user-management',
+      label: 'User Management',
+      icon: Users,
       defaultOpen: true,
       items: [
         {
-          id: 'incident-admin-dashboard',
-          label: 'Dashboard',
-          path: '/app/admin/incidents/dashboard',
-          icon: LayoutDashboard,
+          id: 'user-management-list',
+          label: 'User Management',
+          path: '/app/admin/users',
+          icon: Users,
           exact: true,
-          description: 'Incident operations overview',
-        },
-        {
-          id: 'incident-manage-tickets',
-          label: 'Manage Tickets',
-          path: '/app/admin/incidents/manage',
-          icon: Ticket,
-          description: 'Assign and update ticket workflow',
-        },
-        {
-          id: 'incident-map',
-          label: 'Incident Map',
-          path: '/app/admin/incidents/map',
-          icon: MapPin,
-          description: 'Live campus map of reported incidents',
-        },
-        {
-          id: 'incident-admin-notifications',
-          label: 'Notifications',
-          path: '/app/admin/incidents/notifications',
-          icon: Bell,
-          description: 'Incident and booking notifications',
+          description: 'View and manage all system users',
         },
       ],
     },
@@ -137,6 +117,45 @@ const ADMIN_NAV: RoleNavConfig = {
           path: '/app/bookings/manage',
           icon: Settings,
           description: 'Approve or reject booking requests',
+        },
+      ],
+    },
+    {
+      // Module C: Maintenance & Incident Ticketing (PAF assignment).
+      id: 'incident-admin',
+      label: 'Maintenance & Incidents',
+      icon: Wrench,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'incident-admin-dashboard',
+          label: 'Dashboard',
+          path: '/app/admin/incidents/dashboard',
+          icon: LayoutDashboard,
+          exact: true,
+          description: 'Maintenance & incident ticketing overview',
+        },
+        {
+          id: 'incident-manage-tickets',
+          label: 'Manage Incident Tickets',
+          path: '/app/admin/incidents/manage',
+          icon: Ticket,
+          description: 'Assign technicians and progress the ticket workflow',
+        },
+        {
+          id: 'incident-map',
+          label: 'Campus Incident Map',
+          path: '/app/admin/incidents/map',
+          icon: MapPin,
+          description: 'Live campus map of reported incident tickets',
+        },
+        {
+          // Module D: Notifications (PAF assignment).
+          id: 'incident-admin-notifications',
+          label: 'Notifications',
+          path: '/app/admin/incidents/notifications',
+          icon: Bell,
+          description: 'Incident ticketing & booking notifications',
         },
       ],
     },
@@ -171,36 +190,6 @@ const USER_NAV: RoleNavConfig = {
       ],
     },
     {
-      id: 'incident-user',
-      label: 'Incident Services',
-      icon: Wrench,
-      defaultOpen: true,
-      items: [
-        {
-          id: 'incident-tickets',
-          label: 'Incident Tickets',
-          path: '/app/user/incidents',
-          icon: ClipboardList,
-          exact: true,
-          description: 'Track your maintenance incidents',
-        },
-        {
-          id: 'report-incident',
-          label: 'Report Incident',
-          path: '/app/user/incidents/report',
-          icon: PlusCircle,
-          description: 'Create a new incident ticket',
-        },
-        {
-          id: 'student-notifications',
-          label: 'Notifications',
-          path: '/app/user/notifications',
-          icon: Bell,
-          description: 'View incident and booking notifications',
-        },
-      ],
-    },
-    {
       id: 'bookings-user',
       label: 'My Bookings',
       icon: CalendarDays,
@@ -230,12 +219,136 @@ const USER_NAV: RoleNavConfig = {
         },
       ],
     },
+    {
+      // Module C: Maintenance & Incident Ticketing (PAF assignment).
+      id: 'incident-user',
+      label: 'Maintenance & Incidents',
+      icon: Wrench,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'incident-tickets',
+          label: 'My Incident Tickets',
+          path: '/app/user/incidents',
+          icon: ClipboardList,
+          exact: true,
+          description: 'Track the maintenance incidents you reported',
+        },
+        {
+          id: 'report-incident',
+          label: 'Report New Incident',
+          path: '/app/user/incidents/report',
+          icon: PlusCircle,
+          description: 'Submit a new maintenance / incident ticket',
+        },
+        {
+          // Module D: Notifications (PAF assignment).
+          id: 'student-notifications',
+          label: 'Notifications',
+          path: '/app/user/notifications',
+          icon: Bell,
+          description: 'View incident ticketing & booking notifications',
+        },
+      ],
+    },
+  ],
+};
+
+const LECTURER_NAV: RoleNavConfig = {
+  role: 'LECTURER',
+  defaultRoute: '/app/lecturer/dashboard',
+  groups: [
+    {
+      id: 'facilities-lecturer',
+      label: 'Facilities',
+      icon: Building2,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'lecturer-dashboard',
+          label: 'Dashboard',
+          path: '/app/lecturer/dashboard',
+          icon: LayoutDashboard,
+          exact: true,
+          description: 'Your lecturer overview',
+        },
+        {
+          id: 'lecturer-browse',
+          label: 'Browse Resources',
+          path: '/app/user/browse',
+          icon: Search,
+          description: 'Explore campus facilities',
+        },
+      ],
+    },
+    {
+      id: 'bookings-lecturer',
+      label: 'My Bookings',
+      icon: CalendarDays,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'booking-dashboard-lecturer',
+          label: 'Booking Dashboard',
+          path: '/app/bookings/dashboard',
+          icon: LayoutDashboard,
+          exact: true,
+          description: 'Overview of your bookings',
+        },
+        {
+          id: 'add-booking-lecturer',
+          label: 'Add Booking',
+          path: '/app/bookings/add',
+          icon: PlusCircle,
+          description: 'Create a new booking request',
+        },
+        {
+          id: 'my-bookings-lecturer',
+          label: 'My Booking List',
+          path: '/app/bookings/my',
+          icon: ClipboardList,
+          description: 'View your booking requests',
+        },
+      ],
+    },
+  ],
+};
+
+const MAINTENANCE_NAV: RoleNavConfig = {
+  role: 'MAINTENANCE_STAFF',
+  defaultRoute: '/app/maintenance/dashboard',
+  groups: [
+    {
+      id: 'facilities-maintenance',
+      label: 'Facilities',
+      icon: Building2,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'maintenance-dashboard',
+          label: 'Dashboard',
+          path: '/app/maintenance/dashboard',
+          icon: LayoutDashboard,
+          exact: true,
+          description: 'Your maintenance overview',
+        },
+        {
+          id: 'maintenance-resources',
+          label: 'Browse Resources',
+          path: '/app/user/browse',
+          icon: Box,
+          description: 'View all campus resources',
+        },
+      ],
+    },
   ],
 };
 
 export const ROLE_NAV_CONFIG: Record<UserRole, RoleNavConfig> = {
   ADMIN: ADMIN_NAV,
   USER: USER_NAV,
+  LECTURER: LECTURER_NAV,
+  MAINTENANCE_STAFF: MAINTENANCE_NAV,
 };
 
 export const getNavConfig = (role?: UserRole): RoleNavConfig =>
