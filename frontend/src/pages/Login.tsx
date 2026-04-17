@@ -58,10 +58,11 @@ export const Login: React.FC = () => {
       const data = await loginUser({ email, password });
 
       const userObj: User = {
-        id:    data.id,
-        name:  data.fullName,
-        email: data.email,
-        role:  data.role as UserRole,
+        id:           data.id,
+        name:         data.fullName,
+        email:        data.email,
+        role:         data.role as UserRole,
+        profileImage: data.profileImage,
       };
 
       login(userObj, data.token);
@@ -102,10 +103,11 @@ export const Login: React.FC = () => {
     try {
       const data = await googleLogin(credential);
       const userObj: User = {
-        id:    data.id,
-        name:  data.fullName,
-        email: data.email,
-        role:  data.role as UserRole,
+        id:           data.id,
+        name:         data.fullName,
+        email:        data.email,
+        role:         data.role as UserRole,
+        profileImage: data.profileImage,
       };
       login(userObj, data.token);
       const navConfig = getNavConfig(userObj.role);
