@@ -81,6 +81,76 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void createTicketCreatedNotification(Long recipientUserId, Long ticketId, String reporterName, String category) {
+        String who = (reporterName == null || reporterName.isBlank()) ? "A user" : reporterName.trim();
+        String cat = (category == null || category.isBlank()) ? "incident" : category.trim();
+        createAsyncNotification(
+                recipientUserId,
+                "TICKET_CREATED",
+                "New Incident Reported",
+                who + " submitted a new " + cat + " ticket (#" + ticketId + ").",
+                "TICKET",
+                ticketId
+        );
+    }
+
+    @Override
+    public void createTicketUpdatedNotification(Long recipientUserId, Long ticketId, String reporterName) {
+        String who = (reporterName == null || reporterName.isBlank()) ? "The reporter" : reporterName.trim();
+        createAsyncNotification(
+                recipientUserId,
+                "TICKET_UPDATED",
+                "Incident Ticket Updated",
+                who + " updated the details of ticket #" + ticketId + ".",
+                "TICKET",
+                ticketId
+        );
+    }
+
+    @Override
+    public void createTicketDeletedNotification(Long recipientUserId, Long ticketId, String reporterName) {
+        String who = (reporterName == null || reporterName.isBlank()) ? "The reporter" : reporterName.trim();
+        createAsyncNotification(
+                recipientUserId,
+                "TICKET_DELETED",
+                "Incident Ticket Removed",
+                who + " deleted ticket #" + ticketId + ".",
+                "TICKET",
+                ticketId
+        );
+    }
+
+    @Override
+    public void createTicketAssignedNotification(Long recipientUserId, Long ticketId, String assigneeName, boolean recipientIsAssignee) {
+        String name = (assigneeName == null || assigneeName.isBlank()) ? "a technician" : assigneeName.trim();
+        String title = recipientIsAssignee ? "New Incident Assignment" : "Technician Assigned";
+        String message = recipientIsAssignee
+                ? "You have been assigned to incident ticket #" + ticketId + "."
+                : name + " has been assigned to your incident ticket #" + ticketId + ".";
+        createAsyncNotification(
+                recipientUserId,
+                "TICKET_ASSIGNED",
+                title,
+                message,
+                "TICKET",
+                ticketId
+        );
+    }
+
+    @Override
+    public void createTicketPriorityChangeNotification(Long recipientUserId, Long ticketId, String priority) {
+        String p = (priority == null || priority.isBlank()) ? "updated" : priority.trim().toUpperCase();
+        createAsyncNotification(
+                recipientUserId,
+                "TICKET_PRIORITY_CHANGED",
+                "Ticket Priority Updated",
+                "Priority for your ticket #" + ticketId + " is now " + p + ".",
+                "TICKET",
+                ticketId
+        );
+    }
+
+    @Override
     public List<Notification> getUserNotifications(Long userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
