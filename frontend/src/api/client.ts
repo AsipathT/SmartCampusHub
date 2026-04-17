@@ -7,10 +7,16 @@ const api = axios.create({
   },
 });
 
+type RequestWithSkipAuth = Parameters<typeof api.interceptors.request.use>[0] extends (
+  arg: infer T
+) => any
+  ? T & { skipAuth?: boolean }
+  : { skipAuth?: boolean };
+
 // Attach JWT Bearer token from localStorage on every request
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config: RequestWithSkipAuth) => {
   const token = localStorage.getItem('token');
-  if (token && config.headers) {
+  if (token && config.headers && !config.skipAuth) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
