@@ -103,11 +103,18 @@ export const Login: React.FC = () => {
     try {
       const data = await googleLogin(credential);
       const userObj: User = {
+<<<<<<< HEAD
         id:           data.id,
         name:         data.fullName,
         email:        data.email,
         role:         data.role as UserRole,
         profileImage: data.profileImage,
+=======
+        id:    data.id,
+        name:  data.fullName,
+        email: data.email,
+        role:  data.role as UserRole,
+>>>>>>> parent of dcfa32d (Revert "Authentication adn Authorization")
       };
       login(userObj, data.token);
       const navConfig = getNavConfig(userObj.role);
