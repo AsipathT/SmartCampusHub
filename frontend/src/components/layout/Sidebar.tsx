@@ -12,11 +12,15 @@ const RoleBadge: React.FC<{ role: UserRole }> = ({ role }) => {
   const styles: Record<UserRole, string> = {
     ADMIN: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
     USER: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    LECTURER: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    MAINTENANCE_STAFF: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
   };
 
   const labels: Record<UserRole, string> = {
     ADMIN: 'Admin',
     USER: 'Student',
+    LECTURER: 'Lecturer',
+    MAINTENANCE_STAFF: 'Maintenance',
   };
 
   return (

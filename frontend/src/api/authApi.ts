@@ -41,3 +41,7 @@ export const checkEmailExists = (email: string): Promise<{ exists: boolean }> =>
 /** Update user profile */
 export const updateProfile = (id: string, payload: { fullName?: string; profileImage?: string }): Promise<AuthApiResponse> =>
   api.put<AuthApiResponse>(`/auth/profile/${id}`, payload).then((r) => r.data);
+
+/** Google OAuth2 login — sends Google ID token to backend for verification */
+export const googleLogin = (credential: string): Promise<AuthApiResponse> =>
+  api.post<AuthApiResponse>('/auth/google', { credential }).then((r) => r.data);
