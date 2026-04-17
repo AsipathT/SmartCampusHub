@@ -1,12 +1,8 @@
 import React from 'react';
 import { TicketPriority, TicketStatus } from '../../types/ticket';
-import { AlertCircle, CheckCircle2, Clock, XCircle, Archive } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 
 const statusConfig: Record<TicketStatus, { bg: string; icon: React.ReactNode }> = {
-  OPEN: {
-    bg: 'bg-blue-50 text-blue-700 border-blue-200/80 ring-1 ring-blue-100',
-    icon: <Clock size={11} className="shrink-0" />,
-  },
   IN_PROGRESS: {
     bg: 'bg-amber-50 text-amber-700 border-amber-200/80 ring-1 ring-amber-100',
     icon: <AlertCircle size={11} className="shrink-0" />,
@@ -14,10 +10,6 @@ const statusConfig: Record<TicketStatus, { bg: string; icon: React.ReactNode }> 
   RESOLVED: {
     bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 ring-1 ring-emerald-100',
     icon: <CheckCircle2 size={11} className="shrink-0" />,
-  },
-  CLOSED: {
-    bg: 'bg-slate-100 text-slate-600 border-slate-300/80 ring-1 ring-slate-200',
-    icon: <Archive size={11} className="shrink-0" />,
   },
   REJECTED: {
     bg: 'bg-rose-50 text-rose-700 border-rose-200/80 ring-1 ring-rose-100',
@@ -39,7 +31,6 @@ const priorityConfig: Record<TicketPriority, { text: string; dot: string }> = {
   LOW: { text: 'text-slate-600', dot: 'bg-slate-400' },
   MEDIUM: { text: 'text-amber-600', dot: 'bg-amber-500' },
   HIGH: { text: 'text-red-600', dot: 'bg-red-500' },
-  CRITICAL: { text: 'text-rose-700', dot: 'bg-rose-600' },
 };
 
 export const PriorityBadge: React.FC<{ priority: TicketPriority }> = ({ priority }) => {
