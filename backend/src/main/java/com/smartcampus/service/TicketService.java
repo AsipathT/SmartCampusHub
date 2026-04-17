@@ -13,6 +13,8 @@ public interface TicketService {
     TicketResponseDto getTicketById(Long ticketId, Long viewerUserId);
     TicketResponseDto updateTicket(Long ticketId, UpdateTicketRequest request);
     TicketResponseDto assignTicket(Long ticketId, AssignTicketRequest request);
+    void deleteTicket(Long ticketId, DeleteTicketRequest request);
+    List<IncidentAssigneeOptionDto> listAssignableStaff(String category);
     List<TicketAttachmentDto> uploadAttachments(Long ticketId, MultipartFile[] files);
     TicketCommentDto addComment(Long ticketId, AddTicketCommentRequest request);
     TicketCommentDto updateComment(Long ticketId, Long commentId, UpdateTicketCommentRequest request);
