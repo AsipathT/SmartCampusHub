@@ -9,4 +9,5 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
     boolean emailExists(String email);
     AuthResponse updateProfile(Long userId, String fullName, String profileImage);
+    AuthResponse googleLogin(String credential);
 }
