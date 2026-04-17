@@ -1,20 +1,15 @@
 package com.smartcampus.service;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.smartcampus.dto.AuthResponse;
 import com.smartcampus.dto.LoginRequest;
 import com.smartcampus.dto.RegisterRequest;
 import com.smartcampus.model.entity.User;
 import com.smartcampus.repository.UserRepository;
+import com.smartcampus.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.UUID;
 
 @Service
@@ -24,9 +19,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final NotificationService notificationService;
-
-    @Value("${google.client-id}")
-    private String googleClientId;
 
     // ── REGISTER ──────────────────────────────────────────────────────────────
     @Override
@@ -115,61 +107,6 @@ public class AuthServiceImpl implements AuthService {
                 .message(
                         "Welcome back, " + user.getFullName() + "! You have successfully logged into Smart Campus Hub.")
                 .build();
-    }
-
-    // ── GOOGLE LOGIN ──────────────────────────────────────────────────────────
-    @Override
-    public AuthResponse googleLogin(String credential) {
-        try {
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    new NetHttpTransport(), GsonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
-
-            GoogleIdToken idToken = verifier.verify(credential);
-            if (idToken == null) {
-                throw new IllegalArgumentException("Invalid Google token. Please try again.");
-            }
-
-            GoogleIdToken.Payload payload = idToken.getPayload();
-            String email   = payload.getEmail();
-            String name    = (String) payload.get("name");
-            String picture = (String) payload.get("picture");
-
-            if (!email.toLowerCase().endsWith("@my.sliit.lk")) {
-                throw new IllegalArgumentException(
-                        "Google login is only available for SLIIT students. Please use your @my.sliit.lk Google account.");
-            }
-
-            User user = userRepository.findByEmail(email.toLowerCase()).orElseGet(() -> {
-                String username = email.split("@")[0].toLowerCase();
-                return userRepository.save(User.builder()
-                        .fullName(name != null ? name : email.split("@")[0])
-                        .username(username)
-                        .email(email.toLowerCase())
-                        .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                        .role("USER")
-                        .profileImage(picture)
-                        .build());
-            });
-
-            String token = UUID.randomUUID().toString();
-
-            return AuthResponse.builder()
-                    .token(token)
-                    .id(String.valueOf(user.getId()))
-                    .fullName(user.getFullName())
-                    .profileImage(user.getProfileImage())
-                    .email(user.getEmail())
-                    .role(user.getRole())
-                    .message("Welcome, " + user.getFullName() + "! You have signed in with Google.")
-                    .build();
-
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Google authentication failed. Please try again.");
-        }
     }
 
     // ── UPDATE PROFILE ─────────────────────────────────────────────────────────

@@ -14,8 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { GoogleLogin } from '@react-oauth/google';
-import { registerStudent, checkEmailExists, googleLogin } from '../api/authApi';
+import { registerStudent, checkEmailExists } from '../api/authApi';
 import { getNavConfig } from '../config/navigation';
 import { LoginSuccessPopup } from '../components/common/LoginSuccessPopup';
 
@@ -72,11 +71,10 @@ export const Register: React.FC = () => {
   const [email, setEmail]                   = useState('');
   const [password, setPassword]             = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword]       = useState(false);
-  const [showConfirm, setShowConfirm]         = useState(false);
-  const [loading, setLoading]                 = useState(false);
-  const [googleLoading, setGoogleLoading]     = useState(false);
-  const [emailChecking, setEmailChecking]     = useState(false);
+  const [showPassword, setShowPassword]     = useState(false);
+  const [showConfirm, setShowConfirm]       = useState(false);
+  const [loading, setLoading]               = useState(false);
+  const [emailChecking, setEmailChecking]   = useState(false);
 
   // Field validation statuses
   const [nameStatus,    setNameStatus]    = useState<'idle' | 'valid' | 'invalid'>('idle');
@@ -199,32 +197,6 @@ export const Register: React.FC = () => {
   const handlePopupClose = () => {
     if (successData) navigate(successData.defaultRoute, { replace: true });
     setSuccessData(null);
-  };
-
-  // ── Google OAuth ──────────────────────────────────────────────────────────
-  const handleGoogleSuccess = async (credential: string) => {
-    setGoogleLoading(true);
-    try {
-      const data = await googleLogin(credential);
-      const userObj: User = {
-        id:    data.id,
-        name:  data.fullName,
-        email: data.email,
-        role:  data.role as UserRole,
-      };
-      login(userObj, data.token);
-      const navConfig = getNavConfig(userObj.role);
-      setSuccessData({
-        name:         data.fullName,
-        message:      data.message,
-        defaultRoute: navConfig.defaultRoute,
-      });
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || 'Google sign-in failed. Please try again.';
-      toast.error(msg, { duration: 5000 });
-    } finally {
-      setGoogleLoading(false);
-    }
   };
 
   // Password rule checks
@@ -503,45 +475,6 @@ export const Register: React.FC = () => {
                   )}
                 </button>
               </form>
-
-              {/* Google Sign-Up divider */}
-              <div className="flex items-center gap-3 my-5">
-                <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-xs text-slate-400 font-medium">or sign up with Google</span>
-                <div className="flex-1 h-px bg-slate-200" />
-              </div>
-
-              {/* Google Sign-In button */}
-              <div className="w-full mb-2">
-                {googleLoading ? (
-                  <div className="w-full py-3 rounded-xl border-2 border-slate-200 flex items-center justify-center gap-2 text-sm font-semibold text-slate-500">
-                    <svg className="animate-spin h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Signing up with Google…
-                  </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <GoogleLogin
-                      onSuccess={(credentialResponse) => {
-                        if (credentialResponse.credential) {
-                          handleGoogleSuccess(credentialResponse.credential);
-                        }
-                      }}
-                      onError={() => toast.error('Google sign-in was cancelled or failed.')}
-                      theme="outline"
-                      size="large"
-                      width="368"
-                      text="signup_with"
-                      shape="rectangular"
-                    />
-                  </div>
-                )}
-                <p className="text-[11px] text-slate-400 text-center mt-2">
-                  Auto-registers your <code className="bg-slate-100 px-1 rounded text-emerald-600">@my.sliit.lk</code> account instantly
-                </p>
-              </div>
 
               {/* Divider */}
               <div className="flex items-center gap-3 my-5">
