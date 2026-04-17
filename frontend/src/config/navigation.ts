@@ -18,6 +18,7 @@ import {
   Bell,
   ClipboardList,
   Ticket,
+  MapPin,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
@@ -118,6 +119,13 @@ const ADMIN_NAV: RoleNavConfig = {
           path: '/app/admin/incidents/manage',
           icon: Ticket,
           description: 'Assign and update ticket workflow',
+        },
+        {
+          id: 'incident-map',
+          label: 'Incident Map',
+          path: '/app/admin/incidents/map',
+          icon: MapPin,
+          description: 'Live campus map of reported incidents',
         },
         {
           id: 'incident-admin-notifications',
