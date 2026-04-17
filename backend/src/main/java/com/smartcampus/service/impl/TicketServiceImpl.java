@@ -4,15 +4,18 @@ import com.smartcampus.dto.*;
 import com.smartcampus.model.entity.Ticket;
 import com.smartcampus.model.entity.TicketAttachment;
 import com.smartcampus.model.entity.TicketComment;
+import com.smartcampus.model.entity.IncidentStaffProfile;
 import com.smartcampus.model.enums.TicketPriority;
 import com.smartcampus.model.enums.TicketStatus;
 import com.smartcampus.repository.TicketAttachmentRepository;
 import com.smartcampus.repository.TicketCommentRepository;
+import com.smartcampus.repository.IncidentStaffProfileRepository;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.NotificationService;
 import com.smartcampus.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TicketServiceImpl implements TicketService {
 
@@ -35,22 +39,38 @@ public class TicketServiceImpl implements TicketService {
     private final TicketRepository ticketRepository;
     private final TicketAttachmentRepository attachmentRepository;
     private final TicketCommentRepository commentRepository;
+    private final IncidentStaffProfileRepository incidentStaffProfileRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
     @Override
     public TicketResponseDto createTicket(CreateTicketRequest request) {
         ensureUserExists(request.getReporterUserId(), "Reporter user not found");
+        String contactName = request.getContactName().trim();
+        String contactNumber = request.getContactNumber().trim();
+        String legacyContact = contactName + " | " + contactNumber;
+        if (legacyContact.length() > 255) {
+            legacyContact = legacyContact.substring(0, 255);
+        }
         Ticket ticket = Ticket.builder()
                 .location(request.getLocation().trim())
                 .category(request.getCategory().trim())
                 .description(request.getDescription().trim())
-                .priority(request.getPriority())
-                .preferredContactDetails(request.getPreferredContactDetails().trim())
-                .status(TicketStatus.OPEN)
+                .priority(TicketPriority.MEDIUM)
+                .preferredContactDetails(legacyContact)
+                .contactName(contactName)
+                .contactNumber(contactNumber)
+                .pinLatitude(request.getPinLatitude())
+                .pinLongitude(request.getPinLongitude())
+                .status(TicketStatus.IN_PROGRESS)
                 .reporterUserId(request.getReporterUserId())
                 .build();
-        return mapTicketResponse(ticketRepository.save(ticket), null, true);
+        Ticket saved = ticketRepository.save(ticket);
+        String reporterName = resolveUserDisplayName(saved.getReporterUserId());
+        notifyAdmins(admin -> notificationService.createTicketCreatedNotification(
+                admin, saved.getId(), reporterName, saved.getCategory()
+        ), "ticket created notification");
+        return mapTicketResponse(saved, null, true);
     }
 
     @Override
@@ -75,7 +95,9 @@ public class TicketServiceImpl implements TicketService {
                     return String.valueOf(t.getId()).contains(q)
                             || safe(t.getDescription()).toLowerCase().contains(q)
                             || safe(t.getLocation()).toLowerCase().contains(q)
-                            || safe(t.getCategory()).toLowerCase().contains(q);
+                            || safe(t.getCategory()).toLowerCase().contains(q)
+                            || safe(t.getContactName()).toLowerCase().contains(q)
+                            || safe(t.getContactNumber()).toLowerCase().contains(q);
                 })
                 .map(t -> mapTicketResponse(t, null, false))
                 .collect(Collectors.toList());
@@ -90,13 +112,28 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public TicketResponseDto updateTicket(Long ticketId, UpdateTicketRequest request) {
         Ticket ticket = getTicketOrThrow(ticketId);
+        boolean adminActor = isAdminActor(request.getActorUserId(), request.getActorRole());
+        boolean adminOpsUpdate = request.getStatus() != null
+                || request.getPriority() != null
+                || request.getResolutionNotes() != null
+                || request.getRejectionReason() != null;
+
+        if (adminOpsUpdate) {
+            validateAdminActor(request.getActorUserId(), request.getActorRole());
+        } else if (!adminActor) {
+            validateReporterOwnership(ticket, request.getActorUserId());
+        }
         TicketStatus previousStatus = ticket.getStatus();
 
         if (request.getLocation() != null) ticket.setLocation(request.getLocation().trim());
         if (request.getCategory() != null) ticket.setCategory(request.getCategory().trim());
         if (request.getDescription() != null) ticket.setDescription(request.getDescription().trim());
         if (request.getPriority() != null) ticket.setPriority(request.getPriority());
-        if (request.getPreferredContactDetails() != null) ticket.setPreferredContactDetails(request.getPreferredContactDetails().trim());
+        if (request.getPreferredContactDetails() != null) ticket.setPreferredContactDetails(trimToNull(request.getPreferredContactDetails()));
+        if (request.getContactName() != null) ticket.setContactName(request.getContactName().trim());
+        if (request.getContactNumber() != null) ticket.setContactNumber(request.getContactNumber().trim());
+        if (request.getPinLatitude() != null) ticket.setPinLatitude(request.getPinLatitude());
+        if (request.getPinLongitude() != null) ticket.setPinLongitude(request.getPinLongitude());
         if (request.getResolutionNotes() != null) ticket.setResolutionNotes(trimToNull(request.getResolutionNotes()));
 
         if (request.getStatus() != null) {
@@ -104,28 +141,96 @@ public class TicketServiceImpl implements TicketService {
             ticket.setStatus(request.getStatus());
             if (request.getStatus() == TicketStatus.REJECTED) {
                 ticket.setRejectionReason(trimToNull(request.getRejectionReason()));
-            } else if (request.getStatus() == TicketStatus.RESOLVED || request.getStatus() == TicketStatus.CLOSED) {
+            } else if (request.getStatus() == TicketStatus.RESOLVED) {
                 ticket.setRejectionReason(null);
             }
         }
 
+        TicketPriority previousPriority = ticket.getPriority();
         Ticket updated = ticketRepository.save(ticket);
         if (request.getStatus() != null && previousStatus != request.getStatus()) {
-            notificationService.createTicketStatusChangeNotification(
+            safeNotify(() -> notificationService.createTicketStatusChangeNotification(
                     updated.getReporterUserId(),
                     updated.getId(),
                     updated.getStatus().name()
-            );
+            ), "ticket status change notification");
+        }
+        if (adminOpsUpdate && request.getPriority() != null && previousPriority != request.getPriority()) {
+            safeNotify(() -> notificationService.createTicketPriorityChangeNotification(
+                    updated.getReporterUserId(),
+                    updated.getId(),
+                    updated.getPriority().name()
+            ), "ticket priority change notification");
+        }
+        if (!adminOpsUpdate && !adminActor) {
+            String reporterName = resolveUserDisplayName(updated.getReporterUserId());
+            notifyAdmins(admin -> notificationService.createTicketUpdatedNotification(
+                    admin, updated.getId(), reporterName
+            ), "ticket updated notification");
         }
         return mapTicketResponse(updated, null, true);
     }
 
     @Override
     public TicketResponseDto assignTicket(Long ticketId, AssignTicketRequest request) {
-        ensureUserExists(request.getAssignedStaffId(), "Assigned user not found");
         Ticket ticket = getTicketOrThrow(ticketId);
+        validateAdminActor(request.getActorUserId(), request.getActorRole());
+        if (request.getAssignedStaffId() == null || request.getAssignedStaffId() <= 0) {
+            throw new IllegalArgumentException("Assigned staff ID must be greater than zero");
+        }
+        ensureUserExists(request.getAssignedStaffId(), "Assigned user not found");
+        IncidentStaffProfile profile = incidentStaffProfileRepository.findByUserId(request.getAssignedStaffId())
+                .orElseThrow(() -> new IllegalArgumentException("Assigned user is not available in incident staff roster"));
+        Long previousAssignee = ticket.getAssignedStaffId();
         ticket.setAssignedStaffId(request.getAssignedStaffId());
-        return mapTicketResponse(ticketRepository.save(ticket), null, true);
+        Ticket saved = ticketRepository.save(ticket);
+        if (!Objects.equals(previousAssignee, saved.getAssignedStaffId())) {
+            String technicianName = profile.getFullName();
+            safeNotify(() -> notificationService.createTicketAssignedNotification(
+                    saved.getReporterUserId(), saved.getId(), technicianName, false
+            ), "ticket assigned notification (reporter)");
+            safeNotify(() -> notificationService.createTicketAssignedNotification(
+                    saved.getAssignedStaffId(), saved.getId(), technicianName, true
+            ), "ticket assigned notification (technician)");
+        }
+        return mapTicketResponse(saved, null, true);
+    }
+
+    @Override
+    public void deleteTicket(Long ticketId, DeleteTicketRequest request) {
+        Ticket ticket = getTicketOrThrow(ticketId);
+        validateReporterOwnership(ticket, request.getActorUserId());
+        Long ticketIdValue = ticket.getId();
+        String reporterName = resolveUserDisplayName(ticket.getReporterUserId());
+        commentRepository.deleteByTicketId(ticketId);
+        attachmentRepository.deleteByTicketId(ticketId);
+        ticketRepository.delete(ticket);
+        notifyAdmins(admin -> notificationService.createTicketDeletedNotification(
+                admin, ticketIdValue, reporterName
+        ), "ticket deleted notification");
+    }
+
+    @Override
+    public List<IncidentAssigneeOptionDto> listAssignableStaff(String category) {
+        String normalizedCategory = normalize(category);
+        List<IncidentStaffProfile> allProfiles = incidentStaffProfileRepository.findAll();
+        List<IncidentStaffProfile> matchingProfiles = allProfiles.stream()
+                .filter(profile -> normalizedCategory.isBlank() || normalize(profile.getSupportedCategories()).contains(normalizedCategory))
+                .collect(Collectors.toList());
+        List<IncidentStaffProfile> source = matchingProfiles.isEmpty() ? allProfiles : matchingProfiles;
+        return source.stream()
+                .sorted(Comparator.comparing(IncidentStaffProfile::getYearsOfExperience).reversed())
+                .map(profile -> IncidentAssigneeOptionDto.builder()
+                        .userId(profile.getUserId())
+                        .fullName(profile.getFullName())
+                        .age(profile.getAge())
+                        .qualification(profile.getQualification())
+                        .yearsOfExperience(profile.getYearsOfExperience())
+                        .specialistSkills(profile.getSpecialistSkills())
+                        .contactNumber(profile.getContactNumber())
+                        .supportedCategories(profile.getSupportedCategories())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -181,10 +286,29 @@ public class TicketServiceImpl implements TicketService {
                 .content(request.getContent().trim())
                 .build();
         TicketComment saved = commentRepository.save(comment);
+        String preview = request.getContent().trim();
+        if (preview.length() > 120) preview = preview.substring(0, 120) + "...";
+        final String previewFinal = preview;
+
         if (!Objects.equals(ticket.getReporterUserId(), request.getAuthorUserId())) {
-            String preview = request.getContent().trim();
-            if (preview.length() > 120) preview = preview.substring(0, 120) + "...";
-            notificationService.createTicketCommentNotification(ticket.getReporterUserId(), ticket.getId(), preview);
+            // A non-reporter (admin/staff) commented -> notify the reporter.
+            safeNotify(() -> notificationService.createTicketCommentNotification(
+                    ticket.getReporterUserId(), ticket.getId(), previewFinal
+            ), "ticket comment notification (reporter)");
+        } else {
+            // Reporter commented -> notify every admin so they can respond.
+            notifyAdmins(admin -> notificationService.createTicketCommentNotification(
+                    admin, ticket.getId(), previewFinal
+            ), "ticket comment notification (admins)");
+        }
+        // Also loop the assigned technician in (if someone other than them commented).
+        Long assignee = ticket.getAssignedStaffId();
+        if (assignee != null
+                && !Objects.equals(assignee, request.getAuthorUserId())
+                && !Objects.equals(assignee, ticket.getReporterUserId())) {
+            safeNotify(() -> notificationService.createTicketCommentNotification(
+                    assignee, ticket.getId(), previewFinal
+            ), "ticket comment notification (assignee)");
         }
         return mapComment(saved, request.getAuthorUserId());
     }
@@ -235,22 +359,17 @@ public class TicketServiceImpl implements TicketService {
     private void validateStatusTransition(TicketStatus current, TicketStatus next, String rejectionReason) {
         if (current == next) return;
         switch (current) {
-            case OPEN -> {
-                if (!(next == TicketStatus.IN_PROGRESS || next == TicketStatus.REJECTED)) {
-                    throw new IllegalArgumentException("OPEN can only move to IN_PROGRESS or REJECTED");
-                }
-            }
             case IN_PROGRESS -> {
                 if (!(next == TicketStatus.RESOLVED || next == TicketStatus.REJECTED)) {
                     throw new IllegalArgumentException("IN_PROGRESS can only move to RESOLVED or REJECTED");
                 }
             }
             case RESOLVED -> {
-                if (!(next == TicketStatus.CLOSED || next == TicketStatus.IN_PROGRESS)) {
-                    throw new IllegalArgumentException("RESOLVED can only move to CLOSED or IN_PROGRESS");
+                if (!(next == TicketStatus.IN_PROGRESS || next == TicketStatus.REJECTED)) {
+                    throw new IllegalArgumentException("RESOLVED can only move to IN_PROGRESS or REJECTED");
                 }
             }
-            case CLOSED, REJECTED -> throw new IllegalArgumentException("Closed or rejected tickets cannot transition");
+            case REJECTED -> throw new IllegalArgumentException("Rejected tickets cannot transition");
         }
         if (next == TicketStatus.REJECTED && (rejectionReason == null || rejectionReason.isBlank())) {
             throw new IllegalArgumentException("Rejection reason is required when status is REJECTED");
@@ -263,9 +382,82 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
+    private void validateReporterOwnership(Ticket ticket, Long actorUserId) {
+        if (actorUserId == null) {
+            throw new IllegalArgumentException("Actor user is required");
+        }
+        if (!Objects.equals(ticket.getReporterUserId(), actorUserId)) {
+            throw new IllegalArgumentException("Only the ticket reporter can modify or delete this ticket");
+        }
+    }
+
+    private void validateAdminActor(Long actorUserId, String actorRole) {
+        if (!isAdminActor(actorUserId, actorRole)) {
+            throw new IllegalArgumentException("Only admins can update incident operations");
+        }
+    }
+
+    private boolean isAdminActor(Long actorUserId, String actorRole) {
+        if (actorUserId == null) {
+            return false;
+        }
+        var actor = userRepository.findById(actorUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Actor user not found"));
+        String resolvedRole = actorRole == null ? "" : actorRole.trim();
+        return "ADMIN".equalsIgnoreCase(actor.getRole()) && "ADMIN".equalsIgnoreCase(resolvedRole);
+    }
+
+    /**
+     * Notifications are a best-effort side-effect of ticket operations. Legacy NOT NULL columns
+     * on the shared notifications table can cause inserts to fail; that must never bubble up and
+     * break the primary ticket flow (comment add, status change, etc.).
+     */
+    private void safeNotify(Runnable action, String description) {
+        try {
+            action.run();
+        } catch (Exception ex) {
+            log.warn("Skipping {} due to error: {}", description, ex.getMessage());
+        }
+    }
+
+    /**
+     * Fan out a notification to every admin user. Used when the incident module needs
+     * to alert the operations team (new ticket, reporter update/delete, etc.).
+     */
+    private void notifyAdmins(java.util.function.LongConsumer perAdmin, String description) {
+        try {
+            userRepository.findAllByRoleIgnoreCase("ADMIN").forEach(admin ->
+                    safeNotify(() -> perAdmin.accept(admin.getId()), description)
+            );
+        } catch (Exception ex) {
+            log.warn("Skipping admin fan-out for {} due to error: {}", description, ex.getMessage());
+        }
+    }
+
+    private String resolveUserDisplayName(Long userId) {
+        if (userId == null) return "Unknown user";
+        return userRepository.findById(userId)
+                .map(u -> {
+                    if (u.getFullName() != null && !u.getFullName().isBlank()) return u.getFullName();
+                    if (u.getUsername() != null && !u.getUsername().isBlank()) return u.getUsername();
+                    return "User #" + userId;
+                })
+                .orElse("User #" + userId);
+    }
+
+    private String normalize(String value) {
+        if (value == null) return "";
+        return value.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
     private TicketResponseDto mapTicketResponse(Ticket ticket, Long viewerUserId, boolean includeDetails) {
         List<TicketAttachment> attachments = attachmentRepository.findByTicketIdOrderByCreatedAtAsc(ticket.getId());
         List<TicketComment> comments = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticket.getId());
+        IncidentAssigneeOptionDto assignedStaffProfile = ticket.getAssignedStaffId() == null
+                ? null
+                : incidentStaffProfileRepository.findByUserId(ticket.getAssignedStaffId())
+                .map(this::mapStaffProfile)
+                .orElse(null);
 
         TicketResponseDto.TicketResponseDtoBuilder builder = TicketResponseDto.builder()
                 .id(ticket.getId())
@@ -274,11 +466,16 @@ public class TicketServiceImpl implements TicketService {
                 .description(ticket.getDescription())
                 .priority(ticket.getPriority())
                 .preferredContactDetails(ticket.getPreferredContactDetails())
+                .contactName(ticket.getContactName())
+                .contactNumber(ticket.getContactNumber())
+                .pinLatitude(ticket.getPinLatitude())
+                .pinLongitude(ticket.getPinLongitude())
                 .status(ticket.getStatus())
                 .rejectionReason(ticket.getRejectionReason())
                 .resolutionNotes(ticket.getResolutionNotes())
                 .reporterUserId(ticket.getReporterUserId())
                 .assignedStaffId(ticket.getAssignedStaffId())
+                .assignedStaffProfile(assignedStaffProfile)
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
                 .attachmentCount(attachments.size())
@@ -310,6 +507,19 @@ public class TicketServiceImpl implements TicketService {
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
                 .owner(viewerUserId != null && Objects.equals(comment.getAuthorUserId(), viewerUserId))
+                .build();
+    }
+
+    private IncidentAssigneeOptionDto mapStaffProfile(IncidentStaffProfile profile) {
+        return IncidentAssigneeOptionDto.builder()
+                .userId(profile.getUserId())
+                .fullName(profile.getFullName())
+                .age(profile.getAge())
+                .qualification(profile.getQualification())
+                .yearsOfExperience(profile.getYearsOfExperience())
+                .specialistSkills(profile.getSpecialistSkills())
+                .contactNumber(profile.getContactNumber())
+                .supportedCategories(profile.getSupportedCategories())
                 .build();
     }
 
