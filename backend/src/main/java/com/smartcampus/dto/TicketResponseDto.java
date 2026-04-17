@@ -17,11 +17,16 @@ public class TicketResponseDto {
     private String description;
     private TicketPriority priority;
     private String preferredContactDetails;
+    private String contactName;
+    private String contactNumber;
+    private Double pinLatitude;
+    private Double pinLongitude;
     private TicketStatus status;
     private String rejectionReason;
     private String resolutionNotes;
     private Long reporterUserId;
     private Long assignedStaffId;
+    private IncidentAssigneeOptionDto assignedStaffProfile;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private long attachmentCount;
