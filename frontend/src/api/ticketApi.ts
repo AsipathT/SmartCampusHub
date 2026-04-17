@@ -1,12 +1,14 @@
 import api from './client';
-import { Ticket, TicketPriority, TicketStatus, TicketAttachment, TicketComment } from '../types/ticket';
+import { Ticket, TicketPriority, TicketStatus, TicketAttachment, TicketComment, IncidentAssigneeOption } from '../types/ticket';
 
 export interface CreateTicketPayload {
   location: string;
   category: string;
   description: string;
-  priority: TicketPriority;
-  preferredContactDetails: string;
+  contactName: string;
+  contactNumber: string;
+  pinLatitude: number;
+  pinLongitude: number;
   reporterUserId: number;
 }
 
@@ -16,9 +18,15 @@ export interface UpdateTicketPayload {
   description?: string;
   priority?: TicketPriority;
   preferredContactDetails?: string;
+  contactName?: string;
+  contactNumber?: string;
+  pinLatitude?: number;
+  pinLongitude?: number;
   status?: TicketStatus;
   rejectionReason?: string;
   resolutionNotes?: string;
+  actorUserId?: number;
+  actorRole?: string;
 }
 
 export const listTickets = async (params?: {
@@ -47,6 +55,13 @@ export const updateTicket = async (ticketId: number, payload: UpdateTicketPayloa
   return response.data;
 };
 
+export const deleteTicket = async (
+  ticketId: number,
+  payload: { actorUserId: number }
+): Promise<void> => {
+  await api.delete(`/tickets/${ticketId}`, { data: payload });
+};
+
 export const uploadTicketAttachments = async (
   ticketId: number,
   files: File[]
@@ -63,15 +78,20 @@ export const addTicketComment = async (
   ticketId: number,
   payload: { authorUserId: number; authorRole: string; content: string }
 ): Promise<TicketComment> => {
-  const response = await api.post(`/tickets/${ticketId}/comments`, payload);
+  const response = await api.post(`/tickets/${ticketId}/comments`, payload, { skipAuth: true } as any);
   return response.data;
 };
 
 export const assignTicket = async (
   ticketId: number,
-  assignedStaffId: number
+  payload: { assignedStaffId: number; actorUserId: number; actorRole: string }
 ): Promise<Ticket> => {
-  const response = await api.patch(`/tickets/${ticketId}/assign`, { assignedStaffId });
+  const response = await api.patch(`/tickets/${ticketId}/assign`, payload);
+  return response.data;
+};
+
+export const listAssignableStaff = async (category?: string): Promise<IncidentAssigneeOption[]> => {
+  const response = await api.get('/tickets/assignees', { params: { category } });
   return response.data;
 };
 
