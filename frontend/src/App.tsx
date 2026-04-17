@@ -19,6 +19,7 @@ import { IncidentDashboard } from './pages/admin/IncidentDashboard';
 import { ManageTickets } from './pages/admin/ManageTickets';
 import { AdminTicketDetails } from './pages/admin/AdminTicketDetails';
 import { AdminNotifications } from './pages/admin/AdminNotifications';
+import { IncidentMap } from './pages/admin/IncidentMap';
 
 // ── User pages ─────────────────────────────────────────────────────────────────
 import { UserDashboard } from './pages/user/UserDashboard';
@@ -68,8 +69,9 @@ const App: React.FC = () => {
                 <Route path="facilities/resources/manage/edit/:id" element={<EditResource />} />
                 <Route path="admin/incidents/dashboard" element={<IncidentDashboard />} />
                 <Route path="admin/incidents/manage" element={<ManageTickets />} />
-                <Route path="admin/incidents/:id" element={<AdminTicketDetails />} />
+                <Route path="admin/incidents/map" element={<IncidentMap />} />
                 <Route path="admin/incidents/notifications" element={<AdminNotifications />} />
+                <Route path="admin/incidents/:id" element={<AdminTicketDetails />} />
               </Route>
 
               {/* ── Shared Routes (ADMIN + USER) ──────────────────────────── */}
