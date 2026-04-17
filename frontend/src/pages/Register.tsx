@@ -54,7 +54,7 @@ const FieldIcon: React.FC<{ status: 'idle' | 'valid' | 'invalid' }> = ({ status 
   return null;
 };
 
-// ── Validation Rules Display ───────────────────────────────────────────────────
+// ── Validation Rules Display (At least 8 charcters and one upper case letter───────────────────────────────────────────────────
 const Rule: React.FC<{ met: boolean; text: string }> = ({ met, text }) => (
   <li className={`flex items-center gap-1.5 text-xs transition-colors ${met ? 'text-emerald-600' : 'text-slate-400'}`}>
     {met ? <CheckCircle2 size={11} /> : <div className="w-2.5 h-2.5 rounded-full border border-slate-300" />}
@@ -67,7 +67,7 @@ export const Register: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Form state
+  // Form state(save user input)
   const [fullName, setFullName]             = useState('');
   const [email, setEmail]                   = useState('');
   const [password, setPassword]             = useState('');
