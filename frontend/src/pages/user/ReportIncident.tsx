@@ -1,10 +1,42 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { assignTicket, createTicket, uploadTicketAttachments } from '../../api/ticketApi';
+import { createTicket, uploadTicketAttachments } from '../../api/ticketApi';
 import { useAuth } from '../../contexts/AuthContext';
-import { TicketPriority } from '../../types/ticket';
 import toast from 'react-hot-toast';
-import { AlertTriangle, Camera, CheckCircle2, Clock3, MapPin, ShieldAlert, UserCog } from 'lucide-react';
+import { Camera, MapPin, ShieldAlert, User } from 'lucide-react';
+import { IncidentLocationMapPicker } from '../../components/incidents/IncidentLocationMapPicker';
+
+const SLIIT_LOCATIONS = [
+  { value: 'MAIN_BUILDING', label: 'Main Building (Administration)' },
+  { value: 'BLOCK_A', label: 'Block A — Computing & IT' },
+  { value: 'BLOCK_B', label: 'Block B — Engineering' },
+  { value: 'BLOCK_C', label: 'Block C — Business Faculty' },
+  { value: 'LIBRARY', label: 'Library & Learning Commons' },
+  { value: 'STUDENT_CENTER', label: 'Student Center / Cafeteria' },
+  { value: 'AUDITORIUM', label: 'Main Auditorium' },
+  { value: 'SPORTS_COMPLEX', label: 'Sports Complex / Grounds' },
+  { value: 'PARKING_A', label: 'Car Park A' },
+  { value: 'PARKING_B', label: 'Car Park B' },
+  { value: 'MAIN_GATE', label: 'Main Gate / Security Post' },
+  { value: 'HOSTEL_ZONE', label: 'Student Accommodation / Hostel Zone' },
+  { value: 'OPEN_LECTURE_AREA', label: 'Open Lecture / Courtyard Areas' },
+  { value: 'LAB_COMPLEX', label: 'Laboratory Complex (Computing Labs)' },
+];
+
+const INCIDENT_CATEGORIES = [
+  { value: 'ELECTRICAL_LIGHTING', label: 'Electrical / lighting fault' },
+  { value: 'PLUMBING_WATER', label: 'Plumbing or water leak' },
+  { value: 'AC_VENTILATION', label: 'AC or ventilation issue' },
+  { value: 'IT_NETWORK', label: 'IT, Wi‑Fi, or lab equipment' },
+  { value: 'FURNITURE_STRUCTURAL', label: 'Furniture, door, or fitting damage' },
+  { value: 'CLEANLINESS', label: 'Cleanliness or hygiene concern' },
+  { value: 'SECURITY', label: 'Security-related concern' },
+  { value: 'LIFT_ACCESS', label: 'Lift, ramp, or accessibility' },
+  { value: 'NOISE', label: 'Noise disturbance' },
+  { value: 'HAZARD', label: 'Safety hazard (glass, spill, exposed wiring)' },
+  { value: 'FIRE_SAFETY', label: 'Fire alarm, extinguisher, or emergency signage' },
+  { value: 'OTHER', label: 'Other campus incident' },
+];
 
 export const ReportIncident: React.FC = () => {
   const { user } = useAuth();
@@ -14,66 +46,12 @@ export const ReportIncident: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     location: '',
-    category: 'ELECTRICAL',
+    category: INCIDENT_CATEGORIES[0].value,
+    contactName: '',
+    contactNumber: '',
     description: '',
-    priority: 'MEDIUM' as TicketPriority,
-    preferredContactDetails: '',
   });
-  const [allocatedTech, setAllocatedTech] = useState<{ id: number; name: string; eta: string } | null>(null);
-
-  const CATEGORY_OPTIONS = [
-    { value: 'ELECTRICAL', label: 'Electrical Issues' },
-    { value: 'PLUMBING', label: 'Plumbing & Water Leaks' },
-    { value: 'IT_NETWORK', label: 'IT / Network' },
-    { value: 'FURNITURE', label: 'Furniture & Fixtures' },
-    { value: 'AV_EQUIPMENT', label: 'AV Equipment' },
-    { value: 'CLEANING_HYGIENE', label: 'Cleaning & Hygiene' },
-  ];
-
-  const TECHNICIANS_BY_CATEGORY: Record<string, { id: number; name: string; eta: string }[]> = {
-    ELECTRICAL: [
-      { id: 201, name: 'Kasun Perera', eta: '25 min' },
-      { id: 202, name: 'Nimal Jayasinghe', eta: '35 min' },
-      { id: 203, name: 'Pradeep Fernando', eta: '40 min' },
-      { id: 204, name: 'Ruwan Senanayake', eta: '30 min' },
-      { id: 205, name: 'Sahan Wijekoon', eta: '45 min' },
-    ],
-    PLUMBING: [
-      { id: 211, name: 'Sampath Gunasekara', eta: '30 min' },
-      { id: 212, name: 'Chathura Madushan', eta: '35 min' },
-      { id: 213, name: 'Ishara Lakmal', eta: '50 min' },
-      { id: 214, name: 'Manoj Ranasinghe', eta: '40 min' },
-      { id: 215, name: 'Nadeera Gamage', eta: '25 min' },
-    ],
-    IT_NETWORK: [
-      { id: 221, name: 'Dilan Kularatne', eta: '20 min' },
-      { id: 222, name: 'Chamath Silva', eta: '30 min' },
-      { id: 223, name: 'Yohan Premaratne', eta: '25 min' },
-      { id: 224, name: 'Ravindu Ekanayake', eta: '40 min' },
-      { id: 225, name: 'Nuwantha Abeywickrama', eta: '35 min' },
-    ],
-    FURNITURE: [
-      { id: 231, name: 'Tharindu Rajapaksha', eta: '45 min' },
-      { id: 232, name: 'Malinda Weerasinghe', eta: '35 min' },
-      { id: 233, name: 'Pasan Wijesinghe', eta: '40 min' },
-      { id: 234, name: 'Dilshan Herath', eta: '50 min' },
-      { id: 235, name: 'Lahiru Mendis', eta: '30 min' },
-    ],
-    AV_EQUIPMENT: [
-      { id: 241, name: 'Udesh Bandara', eta: '25 min' },
-      { id: 242, name: 'Sachintha Peiris', eta: '30 min' },
-      { id: 243, name: 'Kavindu Jayawardena', eta: '45 min' },
-      { id: 244, name: 'Minura Alwis', eta: '35 min' },
-      { id: 245, name: 'Tharuka Karunaratne', eta: '40 min' },
-    ],
-    CLEANING_HYGIENE: [
-      { id: 251, name: 'Gayantha Dissanayake', eta: '20 min' },
-      { id: 252, name: 'Niroshan Mallawarachchi', eta: '25 min' },
-      { id: 253, name: 'Harsha Jayalath', eta: '30 min' },
-      { id: 254, name: 'Anjana Pathirana', eta: '35 min' },
-      { id: 255, name: 'Sujeewa Nandasena', eta: '40 min' },
-    ],
-  };
+  const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
 
   const onFileChange = (incoming: FileList | null) => {
     if (!incoming) return;
@@ -89,57 +67,50 @@ export const ReportIncident: React.FC = () => {
   );
 
   useEffect(() => {
-    const techPool = TECHNICIANS_BY_CATEGORY[form.category] || [];
-    if (!techPool.length) {
-      setAllocatedTech(null);
-      return;
-    }
-    const picked = techPool[Math.floor(Math.random() * techPool.length)];
-    setAllocatedTech(picked);
-  }, [form.category]);
-
-  useEffect(() => {
     return () => {
       previews.forEach((p) => URL.revokeObjectURL(p.url));
     };
   }, [previews]);
 
-  const qualityScore = useMemo(() => {
-    let score = 0;
-    if (form.location.trim().length >= 4) score += 20;
-    if (form.description.trim().length >= 40) score += 40;
-    if (form.preferredContactDetails.trim().length >= 6) score += 20;
-    if (files.length > 0) score += 20;
-    return score;
-  }, [form, files]);
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
-    if (!form.location || !form.category || !form.description || !form.preferredContactDetails) {
+    if (!form.location || !form.category || !form.description.trim() || !form.contactName.trim() || !form.contactNumber.trim()) {
       toast.error('Please fill all required fields');
       return;
     }
+    if (!pin) {
+      toast.error('Please tap the map to pin the exact incident location on campus');
+      return;
+    }
     if (form.description.trim().length < 20) {
-      toast.error('Please provide a more detailed description (at least 20 characters)');
+      toast.error('Please describe the incident in at least 20 characters');
+      return;
+    }
+    if (files.length === 0) {
+      toast.error('Please add at least one photo attachment');
+      return;
+    }
+    const phoneOk = /^[\d+\s()-]{9,20}$/.test(form.contactNumber.trim());
+    if (!phoneOk) {
+      toast.error('Enter a valid contact number (9–20 digits, spaces, or + allowed)');
       return;
     }
     try {
       setError(null);
       setSubmitting(true);
+      const locationLabel = SLIIT_LOCATIONS.find((l) => l.value === form.location)?.label ?? form.location;
+      const categoryLabel = INCIDENT_CATEGORIES.find((c) => c.value === form.category)?.label ?? form.category;
       const created = await createTicket({
-        ...form,
-        category: CATEGORY_OPTIONS.find((c) => c.value === form.category)?.label || form.category,
+        location: locationLabel,
+        category: categoryLabel,
+        description: form.description.trim(),
+        contactName: form.contactName.trim(),
+        contactNumber: form.contactNumber.trim(),
+        pinLatitude: pin.lat,
+        pinLongitude: pin.lng,
         reporterUserId: Number(user.id),
       });
-      if (allocatedTech) {
-        try {
-          await assignTicket(created.id, allocatedTech.id);
-        } catch {
-          // Keep the ticket creation successful even if dummy assignee IDs do not exist in DB.
-          toast('Ticket created, but technician assignment requires matching backend users.');
-        }
-      }
       if (files.length) {
         await uploadTicketAttachments(created.id, files);
       }
@@ -155,151 +126,141 @@ export const ReportIncident: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-violet-50 via-indigo-50 to-sky-50 px-6 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="rounded-3xl border border-indigo-100 bg-white/95 p-6 sm:p-8 shadow-md">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Report Incident</h1>
-              <p className="text-sm text-slate-500 mt-1">Submit a complete request with category-based technician auto-allocation.</p>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 px-3 py-2 text-xs font-semibold border border-blue-100">
-              <ShieldAlert size={14} />
-              Service Desk Enabled
+              <p className="text-sm text-slate-500 mt-1">
+                Report a campus issue at SLIIT. Your ticket will be visible to incident operations staff.
+              </p>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-5">
-            <form onSubmit={submit} className="xl:col-span-2 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Resource / Location" required icon={<MapPin size={14} />}>
-                  <input className={inputClass} placeholder="e.g., Computer Lab B, 3rd Floor" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} />
-                </Field>
-                <Field label="Priority" required icon={<AlertTriangle size={14} />}>
-                  <select className={inputClass} value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as TicketPriority }))}>
-                    {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((p) => <option key={p}>{p}</option>)}
-                  </select>
-                </Field>
-              </div>
+          <form onSubmit={submit} className="mt-8 space-y-5">
+            <Field label="Campus location" required icon={<MapPin size={14} />}>
+              <select
+                className={inputClass}
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                required
+              >
+                <option value="">Select a location…</option>
+                {SLIIT_LOCATIONS.map((l) => (
+                  <option key={l.value} value={l.value}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-              <Field label="Incident Category" required icon={<UserCog size={14} />}>
-                <select
-                  className={inputClass}
-                  value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                >
-                  {CATEGORY_OPTIONS.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-              </Field>
+            <Field label="Incident category" required icon={<ShieldAlert size={14} />}>
+              <select
+                className={inputClass}
+                value={form.category}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                required
+              >
+                {INCIDENT_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-              <Field label="Description" required>
-                <textarea
-                  rows={6}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Your name" required icon={<User size={14} />}>
+                <input
                   className={inputClass}
-                  placeholder="Describe what happened, where it happened, and current impact..."
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Full name"
+                  value={form.contactName}
+                  onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
+                  autoComplete="name"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">Tip: include room number, observed issue, and urgency reason.</p>
               </Field>
-
-              <Field label="Preferred Contact Details" required>
-                <input className={inputClass} placeholder="Phone / email / preferred time window" value={form.preferredContactDetails} onChange={(e) => setForm((f) => ({ ...f, preferredContactDetails: e.target.value }))} />
+              <Field label="Contact number" required>
+                <input
+                  className={inputClass}
+                  placeholder="e.g. 07xxxxxxxx"
+                  value={form.contactNumber}
+                  onChange={(e) => setForm((f) => ({ ...f, contactNumber: e.target.value }))}
+                  inputMode="tel"
+                  autoComplete="tel"
+                />
               </Field>
+            </div>
 
-              <Field label="Attachments (max 3)" icon={<Camera size={14} />}>
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
-                  <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={(e) => onFileChange(e.target.files)} />
-                  <p className="text-xs text-slate-500 mt-2">PNG/JPG/WEBP only. Max 3 images.</p>
-                </div>
-                {!!previews.length && (
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {previews.map((entry, idx) => (
-                      <div key={`${entry.file.name}-${idx}`} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
-                        <img src={entry.url} alt={entry.file.name} className="w-full h-24 object-cover" />
-                        <div className="p-2">
-                          <p className="text-xs text-slate-600 truncate">{entry.file.name}</p>
-                          <button
-                            type="button"
-                            onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                            className="mt-1 text-xs text-rose-600"
-                          >
-                            Remove
-                          </button>
-                        </div>
+            <Field label="Pin exact location on campus map" required icon={<MapPin size={14} />}>
+              <p className="text-xs text-slate-500 mb-2">
+                Tap the map to drop a pin, or drag the pin to adjust. Centered on SLIIT Malabe.
+              </p>
+              <IncidentLocationMapPicker
+                position={pin}
+                onChange={(lat, lng) => setPin({ lat, lng })}
+              />
+            </Field>
+
+            <Field label="Brief description" required>
+              <textarea
+                rows={5}
+                className={inputClass}
+                placeholder="What happened, when you noticed it, and any immediate risk…"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </Field>
+
+            <Field label="Attachments (required, max 3)" required icon={<Camera size={14} />}>
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={(e) => onFileChange(e.target.files)} />
+                <p className="text-xs text-slate-500 mt-2">PNG / JPG / WEBP only. Up to 3 images.</p>
+              </div>
+              {!!previews.length && (
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {previews.map((entry, idx) => (
+                    <div key={`${entry.file.name}-${idx}`} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+                      <img src={entry.url} alt={entry.file.name} className="w-full h-24 object-cover" />
+                      <div className="p-2">
+                        <p className="text-xs text-slate-600 truncate">{entry.file.name}</p>
+                        <button
+                          type="button"
+                          onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                          className="mt-1 text-xs text-rose-600"
+                        >
+                          Remove
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </Field>
-
-              {error && (
-                <div className="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2">
-                  {error}
+                    </div>
+                  ))}
                 </div>
               )}
+            </Field>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm"
-                >
-                  {submitting ? 'Submitting...' : 'Submit Ticket'}
-                </button>
-              </div>
-            </form>
+            {error && (
+              <div className="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2">{error}</div>
+            )}
 
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Auto Allocation</p>
-                {allocatedTech ? (
-                  <div className="mt-2">
-                    <p className="text-sm font-semibold text-slate-900">{allocatedTech.name}</p>
-                    <p className="text-xs text-slate-600 mt-1">
-                      Category: {CATEGORY_OPTIONS.find((c) => c.value === form.category)?.label}
-                    </p>
-                    <p className="text-xs text-slate-600 inline-flex items-center gap-1 mt-1">
-                      <Clock3 size={12} />
-                      ETA: {allocatedTech.eta}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 mt-2">No technician mapped.</p>
-                )}
-              </div>
-
-              <div className="bg-gradient-to-br from-emerald-50 to-cyan-50 border border-emerald-100 rounded-2xl p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Submission Quality</p>
-                <div className="mt-3">
-                  <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${qualityScore}%`,
-                        background: qualityScore >= 80 ? '#16a34a' : qualityScore >= 50 ? '#d97706' : '#dc2626',
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-slate-600 mt-2">{qualityScore}% complete</p>
-                </div>
-                <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
-                  <li className="inline-flex items-center gap-1"><CheckCircle2 size={12} className={form.location ? 'text-emerald-600' : 'text-slate-400'} /> Location provided</li>
-                  <li className="inline-flex items-center gap-1"><CheckCircle2 size={12} className={form.description.length >= 20 ? 'text-emerald-600' : 'text-slate-400'} /> Sufficient description</li>
-                  <li className="inline-flex items-center gap-1"><CheckCircle2 size={12} className={form.preferredContactDetails ? 'text-emerald-600' : 'text-slate-400'} /> Contact details filled</li>
-                  <li className="inline-flex items-center gap-1"><CheckCircle2 size={12} className={files.length ? 'text-emerald-600' : 'text-slate-400'} /> Attachment added</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold px-6 py-3 rounded-xl shadow-sm"
+            >
+              {submitting ? 'Submitting…' : 'Submit incident ticket'}
+            </button>
+          </form>
         </div>
       </div>
     </div>
   );
 };
 
-const Field: React.FC<{ label: string; children: React.ReactNode; required?: boolean; icon?: React.ReactNode }> = ({ label, children, required, icon }) => (
+const Field: React.FC<{ label: string; children: React.ReactNode; required?: boolean; icon?: React.ReactNode }> = ({
+  label,
+  children,
+  required,
+  icon,
+}) => (
   <label className="block">
     <span className="text-sm font-medium text-slate-700 inline-flex items-center gap-1.5">
       {icon}
