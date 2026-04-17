@@ -2,9 +2,13 @@ import api from './client';
 
 export interface Notification {
   id: number;
-  message: string;
+  recipientUserId?: number;
+  userId?: number;
   type: string;
-  userId: number;
+  title?: string;
+  message: string;
+  relatedEntityType?: string | null;
+  relatedEntityId?: number | null;
   read: boolean;
   createdAt: string;
 }
