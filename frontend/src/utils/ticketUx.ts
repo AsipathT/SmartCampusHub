@@ -22,7 +22,14 @@ export const getSlaHours = (priority: Ticket['priority']): number => {
 };
 
 export const getSlaState = (ticket: Ticket): 'ok' | 'warning' | 'breached' => {
-  if (ticket.status === 'RESOLVED' || ticket.status === 'REJECTED') return 'ok';
+  // Terminal / non-active states are not subject to SLA pressure.
+  if (
+    ticket.status === 'RESOLVED' ||
+    ticket.status === 'CLOSED' ||
+    ticket.status === 'REJECTED'
+  ) {
+    return 'ok';
+  }
   const ageHours = getTicketAgeMs(ticket) / 3600000;
   const slaHours = getSlaHours(ticket.priority);
   if (ageHours > slaHours) return 'breached';

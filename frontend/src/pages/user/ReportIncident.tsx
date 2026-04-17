@@ -2,25 +2,20 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTicket, uploadTicketAttachments } from '../../api/ticketApi';
 import { useAuth } from '../../contexts/AuthContext';
+import { TicketPriority } from '../../types/ticket';
 import toast from 'react-hot-toast';
-import { Camera, MapPin, ShieldAlert, User } from 'lucide-react';
+import { AlertTriangle, Camera, MapPin, ShieldAlert, User } from 'lucide-react';
 import { IncidentLocationMapPicker } from '../../components/incidents/IncidentLocationMapPicker';
+import {
+  resolveIncidentLocationLabel,
+  resolveIncidentLocationPin,
+  SLIIT_LOCATION_OPTIONS,
+} from '../../utils/incidentLocationPins';
 
-const SLIIT_LOCATIONS = [
-  { value: 'MAIN_BUILDING', label: 'Main Building (Administration)' },
-  { value: 'BLOCK_A', label: 'Block A — Computing & IT' },
-  { value: 'BLOCK_B', label: 'Block B — Engineering' },
-  { value: 'BLOCK_C', label: 'Block C — Business Faculty' },
-  { value: 'LIBRARY', label: 'Library & Learning Commons' },
-  { value: 'STUDENT_CENTER', label: 'Student Center / Cafeteria' },
-  { value: 'AUDITORIUM', label: 'Main Auditorium' },
-  { value: 'SPORTS_COMPLEX', label: 'Sports Complex / Grounds' },
-  { value: 'PARKING_A', label: 'Car Park A' },
-  { value: 'PARKING_B', label: 'Car Park B' },
-  { value: 'MAIN_GATE', label: 'Main Gate / Security Post' },
-  { value: 'HOSTEL_ZONE', label: 'Student Accommodation / Hostel Zone' },
-  { value: 'OPEN_LECTURE_AREA', label: 'Open Lecture / Courtyard Areas' },
-  { value: 'LAB_COMPLEX', label: 'Laboratory Complex (Computing Labs)' },
+const PRIORITY_OPTIONS: { value: TicketPriority; label: string; helper: string }[] = [
+  { value: 'LOW', label: 'Low', helper: 'Minor inconvenience, no immediate impact' },
+  { value: 'MEDIUM', label: 'Medium', helper: 'Affects normal usage, should be addressed soon' },
+  { value: 'HIGH', label: 'High', helper: 'Safety concern or major service disruption' },
 ];
 
 const INCIDENT_CATEGORIES = [
@@ -44,12 +39,20 @@ export const ReportIncident: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    location: string;
+    category: string;
+    contactName: string;
+    contactNumber: string;
+    description: string;
+    priority: TicketPriority;
+  }>({
     location: '',
     category: INCIDENT_CATEGORIES[0].value,
     contactName: '',
     contactNumber: '',
     description: '',
+    priority: 'MEDIUM',
   });
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -72,6 +75,11 @@ export const ReportIncident: React.FC = () => {
     };
   }, [previews]);
 
+  useEffect(() => {
+    const mapped = resolveIncidentLocationPin(form.location);
+    setPin(mapped);
+  }, [form.location]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
@@ -80,7 +88,7 @@ export const ReportIncident: React.FC = () => {
       return;
     }
     if (!pin) {
-      toast.error('Please tap the map to pin the exact incident location on campus');
+      toast.error('Please select a campus location to auto-pin the incident on the map');
       return;
     }
     if (form.description.trim().length < 20) {
@@ -99,12 +107,13 @@ export const ReportIncident: React.FC = () => {
     try {
       setError(null);
       setSubmitting(true);
-      const locationLabel = SLIIT_LOCATIONS.find((l) => l.value === form.location)?.label ?? form.location;
+      const locationLabel = resolveIncidentLocationLabel(form.location) ?? form.location;
       const categoryLabel = INCIDENT_CATEGORIES.find((c) => c.value === form.category)?.label ?? form.category;
       const created = await createTicket({
         location: locationLabel,
         category: categoryLabel,
         description: form.description.trim(),
+        priority: form.priority,
         contactName: form.contactName.trim(),
         contactNumber: form.contactNumber.trim(),
         pinLatitude: pin.lat,
@@ -130,9 +139,10 @@ export const ReportIncident: React.FC = () => {
         <div className="rounded-3xl border border-indigo-100 bg-white/95 p-6 sm:p-8 shadow-md">
           <div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Report Incident</h1>
+              <h1 className="text-3xl font-bold text-slate-900">Report New Incident</h1>
               <p className="text-sm text-slate-500 mt-1">
-                Report a campus issue at SLIIT. Your ticket will be visible to incident operations staff.
+                Submit a new maintenance &amp; incident ticket for SLIIT campus. Choose a category and
+                priority so the right technician can be assigned quickly.
               </p>
             </div>
           </div>
@@ -146,7 +156,7 @@ export const ReportIncident: React.FC = () => {
                 required
               >
                 <option value="">Select a location…</option>
-                {SLIIT_LOCATIONS.map((l) => (
+                {SLIIT_LOCATION_OPTIONS.map((l) => (
                   <option key={l.value} value={l.value}>
                     {l.label}
                   </option>
@@ -167,6 +177,47 @@ export const ReportIncident: React.FC = () => {
                   </option>
                 ))}
               </select>
+            </Field>
+
+            <Field label="Priority" required icon={<AlertTriangle size={14} />}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {PRIORITY_OPTIONS.map((opt) => {
+                  const selected = form.priority === opt.value;
+                  const tone =
+                    opt.value === 'HIGH'
+                      ? selected
+                        ? 'border-rose-300 bg-rose-50 ring-2 ring-rose-200'
+                        : 'border-slate-200 hover:border-rose-200'
+                      : opt.value === 'MEDIUM'
+                      ? selected
+                        ? 'border-amber-300 bg-amber-50 ring-2 ring-amber-200'
+                        : 'border-slate-200 hover:border-amber-200'
+                      : selected
+                      ? 'border-emerald-300 bg-emerald-50 ring-2 ring-emerald-200'
+                      : 'border-slate-200 hover:border-emerald-200';
+                  const dot =
+                    opt.value === 'HIGH'
+                      ? 'bg-rose-500'
+                      : opt.value === 'MEDIUM'
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-500';
+                  return (
+                    <button
+                      type="button"
+                      key={opt.value}
+                      onClick={() => setForm((f) => ({ ...f, priority: opt.value }))}
+                      className={`text-left rounded-xl border bg-white p-3 transition-all ${tone}`}
+                      aria-pressed={selected}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />
+                        <span className="text-sm font-semibold text-slate-800">{opt.label}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-snug">{opt.helper}</p>
+                    </button>
+                  );
+                })}
+              </div>
             </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -193,11 +244,12 @@ export const ReportIncident: React.FC = () => {
 
             <Field label="Pin exact location on campus map" required icon={<MapPin size={14} />}>
               <p className="text-xs text-slate-500 mb-2">
-                Tap the map to drop a pin, or drag the pin to adjust. Centered on SLIIT Malabe.
+                The pin is automatically set based on your selected campus location.
               </p>
               <IncidentLocationMapPicker
                 position={pin}
                 onChange={(lat, lng) => setPin({ lat, lng })}
+                interactive={false}
               />
             </Field>
 

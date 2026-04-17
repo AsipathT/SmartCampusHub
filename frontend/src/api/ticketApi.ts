@@ -5,6 +5,8 @@ export interface CreateTicketPayload {
   location: string;
   category: string;
   description: string;
+  /** Reporter-supplied priority (LOW / MEDIUM / HIGH) — required by Module C. */
+  priority: TicketPriority;
   contactName: string;
   contactNumber: string;
   pinLatitude: number;

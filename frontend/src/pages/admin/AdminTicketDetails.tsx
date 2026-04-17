@@ -42,7 +42,7 @@ export const AdminTicketDetails: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [assignId, setAssignId] = useState<string>('');
   const [assigneeOptions, setAssigneeOptions] = useState<IncidentAssigneeOption[]>([]);
-  const [status, setStatus] = useState<TicketStatus>('IN_PROGRESS');
+  const [status, setStatus] = useState<TicketStatus>('OPEN');
   const [priority, setPriority] = useState<TicketPriority>('MEDIUM');
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -212,7 +212,7 @@ export const AdminTicketDetails: React.FC = () => {
             className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
           >
             <ArrowLeft size={16} />
-            Back to Manage Tickets
+            Back to Manage Incident Tickets
           </Link>
         </div>
 
@@ -637,8 +637,10 @@ const StatusSelect: React.FC<{ value: TicketStatus; onChange: (s: TicketStatus) 
   disabled = false,
 }) => {
   const options: { value: TicketStatus; label: string }[] = [
+    { value: 'OPEN', label: 'Open' },
     { value: 'IN_PROGRESS', label: 'In progress' },
     { value: 'RESOLVED', label: 'Resolved' },
+    { value: 'CLOSED', label: 'Closed' },
     { value: 'REJECTED', label: 'Rejected' },
   ];
   return (

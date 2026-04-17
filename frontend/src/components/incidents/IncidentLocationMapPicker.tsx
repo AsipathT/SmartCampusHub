@@ -51,9 +51,10 @@ function MapInvalidateOnLayoutChange({ layoutKey }: { layoutKey: boolean }) {
 type Props = {
   position: { lat: number; lng: number } | null;
   onChange: (lat: number, lng: number) => void;
+  interactive?: boolean;
 };
 
-export const IncidentLocationMapPicker: React.FC<Props> = ({ position, onChange }) => {
+export const IncidentLocationMapPicker: React.FC<Props> = ({ position, onChange, interactive = true }) => {
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
@@ -120,17 +121,17 @@ export const IncidentLocationMapPicker: React.FC<Props> = ({ position, onChange 
               maxZoom={MAP_MAX_ZOOM}
               maxNativeZoom={TILE_MAX_NATIVE_ZOOM}
             />
-            <MapClickHandler onPick={onChange} />
+            {interactive ? <MapClickHandler onPick={onChange} /> : null}
             {position ? (
               <Marker
                 position={[position.lat, position.lng]}
-                draggable
-                eventHandlers={{
+                draggable={interactive}
+                eventHandlers={interactive ? {
                   dragend: (e) => {
                     const ll = (e.target as L.Marker).getLatLng();
                     onChange(ll.lat, ll.lng);
                   },
-                }}
+                } : undefined}
               />
             ) : null}
           </MapContainer>

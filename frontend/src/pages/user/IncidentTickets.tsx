@@ -47,8 +47,10 @@ export const IncidentTickets: React.FC = () => {
 
   const summary = useMemo(
     () => ({
+      open: tickets.filter((t) => t.status === 'OPEN').length,
       progress: tickets.filter((t) => t.status === 'IN_PROGRESS').length,
       resolved: tickets.filter((t) => t.status === 'RESOLVED').length,
+      closed: tickets.filter((t) => t.status === 'CLOSED').length,
       rejected: tickets.filter((t) => t.status === 'REJECTED').length,
     }),
     [tickets]
@@ -59,7 +61,7 @@ export const IncidentTickets: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Incident Tickets</h1>
+            <h1 className="text-3xl font-bold text-slate-900">My Incident Tickets</h1>
           </div>
           <Link
             to="/app/user/incidents/report"
@@ -70,9 +72,11 @@ export const IncidentTickets: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <StatCard label="Open" value={summary.open} />
           <StatCard label="In Progress" value={summary.progress} />
           <StatCard label="Resolved" value={summary.resolved} />
+          <StatCard label="Closed" value={summary.closed} />
           <StatCard label="Rejected" value={summary.rejected} />
         </div>
 
@@ -92,7 +96,7 @@ export const IncidentTickets: React.FC = () => {
             className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
           >
             <option value="ALL">All Statuses</option>
-            {['IN_PROGRESS', 'RESOLVED', 'REJECTED'].map((s) => (
+            {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED'].map((s) => (
               <option key={s} value={s}>{s.replace('_', ' ')}</option>
             ))}
           </select>

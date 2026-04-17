@@ -8,6 +8,15 @@ import { getNavConfig } from '../config/navigation';
 import { loginUser, googleLogin } from '../api/authApi';
 import { LoginSuccessPopup } from '../components/common/LoginSuccessPopup';
 
+const QUICK_LOGIN_EMAILS = [
+  'admin@smartcampus.edu',
+  'it22541048@my.sliit.lk',
+  'it22541049@my.sliit.lk',
+  'it22541050@my.sliit.lk',
+  'it22541051@my.sliit.lk',
+  'it22541052@my.sliit.lk',
+];
+
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -190,6 +199,8 @@ export const Login: React.FC = () => {
                       required
                       value={email}
                       onChange={(e) => handleEmailChange(e.target.value)}
+                      list="quick-login-emails"
+                      autoComplete="email"
                       placeholder="it23145870@my.sliit.lk"
                       className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 ${
                         emailError
@@ -197,6 +208,11 @@ export const Login: React.FC = () => {
                           : 'border-slate-200 bg-slate-50 focus:ring-indigo-200 focus:border-indigo-400 focus:bg-white'
                       }`}
                     />
+                    <datalist id="quick-login-emails">
+                      {QUICK_LOGIN_EMAILS.map((mail) => (
+                        <option key={mail} value={mail} />
+                      ))}
+                    </datalist>
                   </div>
                   {emailError && (
                     <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">

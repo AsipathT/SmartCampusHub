@@ -52,17 +52,20 @@ public class TicketServiceImpl implements TicketService {
         if (legacyContact.length() > 255) {
             legacyContact = legacyContact.substring(0, 255);
         }
+        TicketPriority requestedPriority = request.getPriority() != null
+                ? request.getPriority()
+                : TicketPriority.MEDIUM;
         Ticket ticket = Ticket.builder()
                 .location(request.getLocation().trim())
                 .category(request.getCategory().trim())
                 .description(request.getDescription().trim())
-                .priority(TicketPriority.MEDIUM)
+                .priority(requestedPriority)
                 .preferredContactDetails(legacyContact)
                 .contactName(contactName)
                 .contactNumber(contactNumber)
                 .pinLatitude(request.getPinLatitude())
                 .pinLongitude(request.getPinLongitude())
-                .status(TicketStatus.IN_PROGRESS)
+                .status(TicketStatus.OPEN)
                 .reporterUserId(request.getReporterUserId())
                 .build();
         Ticket saved = ticketRepository.save(ticket);
@@ -182,7 +185,14 @@ public class TicketServiceImpl implements TicketService {
         IncidentStaffProfile profile = incidentStaffProfileRepository.findByUserId(request.getAssignedStaffId())
                 .orElseThrow(() -> new IllegalArgumentException("Assigned user is not available in incident staff roster"));
         Long previousAssignee = ticket.getAssignedStaffId();
+        TicketStatus previousStatus = ticket.getStatus();
         ticket.setAssignedStaffId(request.getAssignedStaffId());
+        // When a technician is assigned to a freshly reported (OPEN) ticket,
+        // the workflow moves to IN_PROGRESS automatically — this matches the
+        // PAF Module C lifecycle (OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED).
+        if (previousStatus == TicketStatus.OPEN) {
+            ticket.setStatus(TicketStatus.IN_PROGRESS);
+        }
         Ticket saved = ticketRepository.save(ticket);
         if (!Objects.equals(previousAssignee, saved.getAssignedStaffId())) {
             String technicianName = profile.getFullName();
@@ -192,6 +202,13 @@ public class TicketServiceImpl implements TicketService {
             safeNotify(() -> notificationService.createTicketAssignedNotification(
                     saved.getAssignedStaffId(), saved.getId(), technicianName, true
             ), "ticket assigned notification (technician)");
+        }
+        if (previousStatus != saved.getStatus()) {
+            safeNotify(() -> notificationService.createTicketStatusChangeNotification(
+                    saved.getReporterUserId(),
+                    saved.getId(),
+                    saved.getStatus().name()
+            ), "ticket status change notification (auto on assign)");
         }
         return mapTicketResponse(saved, null, true);
     }
@@ -356,19 +373,32 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
+    /**
+     * Enforces the assignment-specified workflow:
+     * {@code OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED} with {@code REJECTED}
+     * reachable from {@code OPEN} or {@code IN_PROGRESS} (admin-only and a
+     * rejection reason is required). Resolved tickets may be reopened back to
+     * {@code IN_PROGRESS} if more work is needed before {@code CLOSED}.
+     */
     private void validateStatusTransition(TicketStatus current, TicketStatus next, String rejectionReason) {
         if (current == next) return;
         switch (current) {
+            case OPEN -> {
+                if (!(next == TicketStatus.IN_PROGRESS || next == TicketStatus.REJECTED)) {
+                    throw new IllegalArgumentException("OPEN can only move to IN_PROGRESS or REJECTED");
+                }
+            }
             case IN_PROGRESS -> {
                 if (!(next == TicketStatus.RESOLVED || next == TicketStatus.REJECTED)) {
                     throw new IllegalArgumentException("IN_PROGRESS can only move to RESOLVED or REJECTED");
                 }
             }
             case RESOLVED -> {
-                if (!(next == TicketStatus.IN_PROGRESS || next == TicketStatus.REJECTED)) {
-                    throw new IllegalArgumentException("RESOLVED can only move to IN_PROGRESS or REJECTED");
+                if (!(next == TicketStatus.CLOSED || next == TicketStatus.IN_PROGRESS)) {
+                    throw new IllegalArgumentException("RESOLVED can only move to CLOSED or back to IN_PROGRESS");
                 }
             }
+            case CLOSED -> throw new IllegalArgumentException("Closed tickets cannot transition");
             case REJECTED -> throw new IllegalArgumentException("Rejected tickets cannot transition");
         }
         if (next == TicketStatus.REJECTED && (rejectionReason == null || rejectionReason.isBlank())) {

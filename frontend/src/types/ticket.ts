@@ -1,4 +1,6 @@
-export type TicketStatus = 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+// Aligned with PAF assignment Module C workflow:
+// OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED (Admin may also set REJECTED with a reason).
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED' | 'REJECTED';
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface TicketAttachment {

@@ -65,7 +65,7 @@ export const ManageTickets: React.FC = () => {
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-card-enter">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Manage Tickets</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Manage Incident Tickets</h1>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export const ManageTickets: React.FC = () => {
                 className="w-full bg-slate-50/80 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all"
               />
             </div>
-            <StyledSelect value={status} setValue={setStatus} options={['ALL', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']} />
+            <StyledSelect value={status} setValue={setStatus} options={['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']} />
             <StyledSelect value={priority} setValue={setPriority} options={['ALL', 'LOW', 'MEDIUM', 'HIGH']} />
             <StyledSelect value={category} setValue={setCategory} options={['ALL', ...categories]} />
             <StyledSelect value={assignment} setValue={setAssignment} options={['ALL', 'ASSIGNED', 'UNASSIGNED']} />

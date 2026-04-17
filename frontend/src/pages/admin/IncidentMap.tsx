@@ -29,6 +29,7 @@ import {
 
 import { listTickets } from '../../api/ticketApi';
 import { Ticket, TicketPriority, TicketStatus } from '../../types/ticket';
+import { resolveIncidentLocationPin } from '../../utils/incidentLocationPins';
 
 // ── Map constants ────────────────────────────────────────────────────────────
 const SLIIT_CAMPUS_CENTER: [number, number] = [6.91485, 79.97228];
@@ -41,20 +42,27 @@ const TILE_MAX_NATIVE_ZOOM = 19;
 const PRIORITY_TONE: Record<TicketPriority, { fill: string; ring: string; label: string }> = {
   HIGH:   { fill: '#ef4444', ring: 'rgba(239,68,68,0.25)',  label: 'High' },
   MEDIUM: { fill: '#f59e0b', ring: 'rgba(245,158,11,0.25)', label: 'Medium' },
-  LOW:    { fill: '#64748b', ring: 'rgba(100,116,139,0.25)', label: 'Low' },
+  LOW:    { fill: '#10b981', ring: 'rgba(16,185,129,0.25)', label: 'Low' },
 };
 
 const STATUS_TONE: Record<TicketStatus, { bg: string; text: string; border: string; dot: string; label: string }> = {
+  OPEN:        { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    dot: 'bg-blue-500',    label: 'Open' },
   IN_PROGRESS: { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   dot: 'bg-amber-500',   label: 'In Progress' },
   RESOLVED:    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500', label: 'Resolved' },
+  CLOSED:      { bg: 'bg-slate-100',  text: 'text-slate-700',   border: 'border-slate-200',   dot: 'bg-slate-500',   label: 'Closed' },
   REJECTED:    { bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    dot: 'bg-rose-500',    label: 'Rejected' },
 };
 
 function buildPinIcon(priority: TicketPriority, status: TicketStatus, selected: boolean) {
   const tone = PRIORITY_TONE[priority];
-  const statusDot = status === 'RESOLVED' ? '#10b981' : status === 'REJECTED' ? '#f43f5e' : '#ffffff';
+  const statusDot =
+    status === 'RESOLVED' ? '#10b981'
+    : status === 'CLOSED' ? '#64748b'
+    : status === 'REJECTED' ? '#f43f5e'
+    : status === 'OPEN' ? '#3b82f6'
+    : '#ffffff';
   const size = selected ? 44 : 36;
-  const pulse = priority === 'HIGH' && status === 'IN_PROGRESS';
+  const pulse = priority === 'HIGH' && (status === 'IN_PROGRESS' || status === 'OPEN');
 
   const html = `
     <div class="sch-pin ${pulse ? 'sch-pin--pulse' : ''}" style="--pin-fill:${tone.fill};--pin-ring:${tone.ring};width:${size}px;height:${size}px">
@@ -95,13 +103,18 @@ function InvalidateOnChange({ deps }: { deps: any[] }) {
   return null;
 }
 
-function FitBounds({ tickets, enabled }: { tickets: Ticket[]; enabled: boolean }) {
+function FitBounds({
+  tickets,
+  enabled,
+}: {
+  tickets: Array<{ resolvedPinLatitude: number; resolvedPinLongitude: number }>;
+  enabled: boolean;
+}) {
   const map = useMap();
   useEffect(() => {
     if (!enabled) return;
     const pts = tickets
-      .filter((t) => t.pinLatitude != null && t.pinLongitude != null)
-      .map((t) => [t.pinLatitude!, t.pinLongitude!] as [number, number]);
+      .map((t) => [t.resolvedPinLatitude, t.resolvedPinLongitude] as [number, number]);
     if (pts.length === 0) {
       map.setView(SLIIT_CAMPUS_CENTER, MAP_DEFAULT_ZOOM);
       return;
@@ -115,6 +128,11 @@ function FitBounds({ tickets, enabled }: { tickets: Ticket[]; enabled: boolean }
   }, [enabled, tickets, map]);
   return null;
 }
+
+type TicketWithResolvedPin = Ticket & {
+  resolvedPinLatitude: number;
+  resolvedPinLongitude: number;
+};
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export const IncidentMap: React.FC = () => {
@@ -161,8 +179,18 @@ export const IncidentMap: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [maximized]);
 
-  const withPin = useMemo(
-    () => tickets.filter((t) => t.pinLatitude != null && t.pinLongitude != null),
+  const withPin = useMemo<TicketWithResolvedPin[]>(
+    () =>
+      tickets
+        .map((t) => {
+          if (t.pinLatitude != null && t.pinLongitude != null) {
+            return { ...t, resolvedPinLatitude: t.pinLatitude, resolvedPinLongitude: t.pinLongitude };
+          }
+          const fallback = resolveIncidentLocationPin(t.location);
+          if (!fallback) return null;
+          return { ...t, resolvedPinLatitude: fallback.lat, resolvedPinLongitude: fallback.lng };
+        })
+        .filter((t): t is TicketWithResolvedPin => t !== null),
     [tickets]
   );
 
@@ -184,11 +212,13 @@ export const IncidentMap: React.FC = () => {
 
   const stats = useMemo(() => {
     const total = filtered.length;
+    const open = filtered.filter((t) => t.status === 'OPEN').length;
     const inProgress = filtered.filter((t) => t.status === 'IN_PROGRESS').length;
     const resolved = filtered.filter((t) => t.status === 'RESOLVED').length;
+    const closed = filtered.filter((t) => t.status === 'CLOSED').length;
     const rejected = filtered.filter((t) => t.status === 'REJECTED').length;
     const high = filtered.filter((t) => t.priority === 'HIGH').length;
-    return { total, inProgress, resolved, rejected, high };
+    return { total, open, inProgress, resolved, closed, rejected, high };
   }, [filtered]);
 
   const resetFilters = () => {
@@ -237,8 +267,8 @@ export const IncidentMap: React.FC = () => {
               <MapPin size={20} />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Incident Map</h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Live view of every reported incident pinned on the SLIIT Malabe campus.</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Campus Incident Map</h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Live view of every reported maintenance &amp; incident ticket pinned on the SLIIT Malabe campus.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -284,8 +314,10 @@ export const IncidentMap: React.FC = () => {
             </button>
             <div className="ml-auto flex items-center gap-2 flex-wrap">
               <StatChip tone="slate"   icon={<TicketCheck size={12} />}    label="Total"       value={stats.total} />
+              <StatChip tone="blue"    icon={<MapPin size={12} />}         label="Open"        value={stats.open} />
               <StatChip tone="amber"   icon={<AlertTriangle size={12} />}  label="In Progress" value={stats.inProgress} />
               <StatChip tone="emerald" icon={<CheckCircle2 size={12} />}   label="Resolved"    value={stats.resolved} />
+              <StatChip tone="slateAlt" icon={<CheckCircle2 size={12} />}  label="Closed"      value={stats.closed} />
               <StatChip tone="rose"    icon={<XCircle size={12} />}        label="Rejected"    value={stats.rejected} />
               <StatChip tone="red"     icon={<AlertTriangle size={12} />}  label="High"        value={stats.high} />
             </div>
@@ -359,7 +391,7 @@ export const IncidentMap: React.FC = () => {
                 {filtered.map((t) => (
                   <Marker
                     key={t.id}
-                    position={[t.pinLatitude!, t.pinLongitude!]}
+                    position={[t.resolvedPinLatitude, t.resolvedPinLongitude]}
                     icon={buildPinIcon(t.priority, t.status, selectedId === t.id)}
                     eventHandlers={{
                       click: () => {
@@ -537,17 +569,19 @@ const IncidentPopup: React.FC<{ ticket: Ticket; onOpen: () => void }> = ({ ticke
 };
 
 const StatChip: React.FC<{
-  tone: 'slate' | 'amber' | 'emerald' | 'rose' | 'red';
+  tone: 'slate' | 'slateAlt' | 'blue' | 'amber' | 'emerald' | 'rose' | 'red';
   icon: React.ReactNode;
   label: string;
   value: number;
 }> = ({ tone, icon, label, value }) => {
   const tones: Record<string, string> = {
-    slate:   'bg-slate-50 text-slate-600 border-slate-200',
-    amber:   'bg-amber-50 text-amber-700 border-amber-200',
-    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    rose:    'bg-rose-50 text-rose-700 border-rose-200',
-    red:     'bg-red-50 text-red-700 border-red-200',
+    slate:    'bg-slate-50 text-slate-600 border-slate-200',
+    slateAlt: 'bg-slate-100 text-slate-700 border-slate-300',
+    blue:     'bg-blue-50 text-blue-700 border-blue-200',
+    amber:    'bg-amber-50 text-amber-700 border-amber-200',
+    emerald:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+    rose:     'bg-rose-50 text-rose-700 border-rose-200',
+    red:      'bg-red-50 text-red-700 border-red-200',
   };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${tones[tone]}`}>

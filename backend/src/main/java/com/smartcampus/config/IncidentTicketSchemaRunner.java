@@ -60,12 +60,11 @@ public class IncidentTicketSchemaRunner implements ApplicationRunner {
             jdbcTemplate.update(
                     "UPDATE incident_tickets SET pin_longitude = 79.9723 WHERE pin_longitude IS NULL"
             );
-            jdbcTemplate.update(
-                    "UPDATE incident_tickets SET status = 'IN_PROGRESS' WHERE status = 'OPEN'"
-            );
-            jdbcTemplate.update(
-                    "UPDATE incident_tickets SET status = 'RESOLVED' WHERE status = 'CLOSED'"
-            );
+            // The PAF assignment Module C requires the full
+            // OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED workflow (with REJECTED).
+            // Earlier migrations that collapsed OPEN -> IN_PROGRESS and
+            // CLOSED -> RESOLVED were intentionally removed so historical
+            // data preserves its original lifecycle state.
             jdbcTemplate.update(
                     "UPDATE incident_tickets SET priority = 'HIGH' WHERE priority = 'CRITICAL'"
             );

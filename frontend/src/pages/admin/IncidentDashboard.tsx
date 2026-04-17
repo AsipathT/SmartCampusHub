@@ -8,8 +8,10 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
+  CircleDot,
   Clock,
   Loader2,
+  Lock,
   MapPin,
   MessageSquare,
   Paperclip,
@@ -36,8 +38,10 @@ export const IncidentDashboard: React.FC = () => {
   }, []);
 
   const stats = useMemo(() => ({
+    open: tickets.filter((t) => t.status === 'OPEN').length,
     progress: tickets.filter((t) => t.status === 'IN_PROGRESS').length,
     resolved: tickets.filter((t) => t.status === 'RESOLVED').length,
+    closed: tickets.filter((t) => t.status === 'CLOSED').length,
     rejected: tickets.filter((t) => t.status === 'REJECTED').length,
   }), [tickets]);
 
@@ -48,7 +52,7 @@ export const IncidentDashboard: React.FC = () => {
         {/* ── Page header ── */}
         <div className="flex items-center justify-between pb-5 border-b border-slate-200 animate-card-enter">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Incident Tickets</h1>
+            <h1 className="text-xl font-bold text-slate-900">Maintenance &amp; Incident Tickets</h1>
             <p className="text-sm text-slate-500 mt-0.5">Manage and track maintenance requests</p>
           </div>
           <Link
@@ -61,34 +65,48 @@ export const IncidentDashboard: React.FC = () => {
         </div>
 
         {/* ── KPI cards ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
           <Kpi
-            label="Total Tickets"
+            label="Total"
             value={tickets.length}
             icon={<TicketIcon size={22} />}
             color="blue"
             delay={0}
           />
           <Kpi
+            label="Open"
+            value={stats.open}
+            icon={<CircleDot size={22} />}
+            color="sky"
+            delay={1}
+          />
+          <Kpi
             label="In Progress"
             value={stats.progress}
             icon={<Loader2 size={22} />}
             color="amber"
-            delay={1}
+            delay={2}
           />
           <Kpi
             label="Resolved"
             value={stats.resolved}
             icon={<CheckCircle2 size={22} />}
             color="emerald"
-            delay={2}
+            delay={3}
+          />
+          <Kpi
+            label="Closed"
+            value={stats.closed}
+            icon={<Lock size={22} />}
+            color="slate"
+            delay={4}
           />
           <Kpi
             label="Rejected"
             value={stats.rejected}
             icon={<XOctagon size={22} />}
             color="rose"
-            delay={3}
+            delay={5}
           />
         </div>
 
@@ -186,8 +204,10 @@ export const IncidentDashboard: React.FC = () => {
 
 const colorMap = {
   blue:    { bg: 'bg-blue-50',    icon: 'bg-blue-100 text-blue-600',    text: 'text-blue-600',    ring: 'ring-blue-100' },
+  sky:     { bg: 'bg-sky-50',     icon: 'bg-sky-100 text-sky-600',      text: 'text-sky-600',     ring: 'ring-sky-100' },
   amber:   { bg: 'bg-amber-50',   icon: 'bg-amber-100 text-amber-600',  text: 'text-amber-600',   ring: 'ring-amber-100' },
   emerald: { bg: 'bg-emerald-50', icon: 'bg-emerald-100 text-emerald-600', text: 'text-emerald-600', ring: 'ring-emerald-100' },
+  slate:   { bg: 'bg-slate-50',   icon: 'bg-slate-100 text-slate-600',  text: 'text-slate-600',   ring: 'ring-slate-100' },
   rose:    { bg: 'bg-rose-50',    icon: 'bg-rose-100 text-rose-600',    text: 'text-rose-600',    ring: 'ring-rose-100' },
 };
 
