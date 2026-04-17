@@ -36,8 +36,19 @@ public class Ticket {
     @Column(nullable = false, length = 20)
     private TicketPriority priority;
 
-    @Column(nullable = false, length = 255)
+    /** Legacy field; new incidents use contactName + contactNumber. */
+    @Column(length = 255)
     private String preferredContactDetails;
+
+    @Column(length = 120)
+    private String contactName;
+
+    @Column(length = 40)
+    private String contactNumber;
+
+    private Double pinLatitude;
+
+    private Double pinLongitude;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
