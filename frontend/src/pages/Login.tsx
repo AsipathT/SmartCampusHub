@@ -8,6 +8,7 @@ import { getNavConfig } from '../config/navigation';
 import { loginUser, googleLogin } from '../api/authApi';
 import { LoginSuccessPopup } from '../components/common/LoginSuccessPopup';
 
+//Defines a React functional component
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,6 +43,8 @@ export const Login: React.FC = () => {
       setEmailError('');
     }
   };
+
+//
 
   const handleEmailChange = (val: string) => {
     setEmail(val);
@@ -108,6 +111,7 @@ export const Login: React.FC = () => {
         email:        data.email,
         role:         data.role as UserRole,
         profileImage: data.profileImage,
+    
       };
       login(userObj, data.token);
       const navConfig = getNavConfig(userObj.role);
