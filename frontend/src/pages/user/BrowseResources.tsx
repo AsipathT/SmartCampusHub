@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getResources } from '../../api/resourceApi';
 import { Resource } from '../../types/resource';
 import {
@@ -172,11 +172,7 @@ const AvailabilityCalendar: React.FC<{ resource: Resource }> = ({ resource }) =>
 };
 
 // ── Resource Card ─────────────────────────────────────────────────────────────
-const BrowseCard: React.FC<{
-  resource: Resource;
-  showCalendar: boolean;
-  navigate: (path: string) => void;
-}> = ({ resource, showCalendar, navigate }) => {
+const BrowseCard: React.FC<{ resource: Resource; showCalendar: boolean }> = ({ resource, showCalendar }) => {
   const status  = statusMeta(resource.status);
   const smart   = getSmartAvailability(resource);
 
@@ -240,7 +236,7 @@ const BrowseCard: React.FC<{
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
-            onClick={() => navigate(`/app/bookings/add?resourceId=${resource.id}`)}
+            onClick={() => window.location.assign(`/app/bookings/add?resourceId=${resource.id}`)}
             className={`flex items-center justify-center gap-1.5 py-2 rounded-xl font-semibold text-xs transition-colors shadow-sm
               ${smart.available
                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
@@ -286,7 +282,6 @@ export const BrowseResources: React.FC = () => {
   const [totalPages, setTotalPages]     = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [page, setPage]                 = useState(0);
-  const navigate = useNavigate();
 
   // Feature 1 — Advanced search state
   const [search, setSearch]             = useState('');
@@ -533,7 +528,7 @@ export const BrowseResources: React.FC = () => {
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {resources.map((r) => <BrowseCard key={r.id} resource={r} showCalendar={showCalendar} navigate={navigate} />)}
+            {resources.map((r) => <BrowseCard key={r.id} resource={r} showCalendar={showCalendar} />)}
           </div>
         ) : (
           /* List View */
@@ -566,7 +561,7 @@ export const BrowseResources: React.FC = () => {
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
                     <button disabled={!smart.available}
-                      onClick={() => navigate(`/app/bookings/add?resourceId=${r.id}`)}
+                      onClick={() => window.location.assign(`/app/bookings/add?resourceId=${r.id}`)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors
                         ${smart.available ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}>
                       Book

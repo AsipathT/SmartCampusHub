@@ -8,6 +8,10 @@ import {
   ClipboardList,
   CalendarDays,
   Users,
+  Wrench,
+  Bell,
+  Ticket,
+  MapPin,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
@@ -116,6 +120,45 @@ const ADMIN_NAV: RoleNavConfig = {
         },
       ],
     },
+    {
+      // Module C: Maintenance & Incident Ticketing (PAF assignment).
+      id: 'incident-admin',
+      label: 'Maintenance & Incidents',
+      icon: Wrench,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'incident-admin-dashboard',
+          label: 'Dashboard',
+          path: '/app/admin/incidents/dashboard',
+          icon: LayoutDashboard,
+          exact: true,
+          description: 'Maintenance & incident ticketing overview',
+        },
+        {
+          id: 'incident-manage-tickets',
+          label: 'Manage Incident Tickets',
+          path: '/app/admin/incidents/manage',
+          icon: Ticket,
+          description: 'Assign technicians and progress the ticket workflow',
+        },
+        {
+          id: 'incident-map',
+          label: 'Campus Incident Map',
+          path: '/app/admin/incidents/map',
+          icon: MapPin,
+          description: 'Live campus map of reported incident tickets',
+        },
+        {
+          // Module D: Notifications (PAF assignment).
+          id: 'incident-admin-notifications',
+          label: 'Notifications',
+          path: '/app/admin/incidents/notifications',
+          icon: Bell,
+          description: 'Incident ticketing & booking notifications',
+        },
+      ],
+    },
   ],
 };
 
@@ -173,6 +216,38 @@ const USER_NAV: RoleNavConfig = {
           path: '/app/bookings/my',
           icon: ClipboardList,
           description: 'Track your booking requests',
+        },
+      ],
+    },
+    {
+      // Module C: Maintenance & Incident Ticketing (PAF assignment).
+      id: 'incident-user',
+      label: 'Maintenance & Incidents',
+      icon: Wrench,
+      defaultOpen: true,
+      items: [
+        {
+          id: 'incident-tickets',
+          label: 'My Incident Tickets',
+          path: '/app/user/incidents',
+          icon: ClipboardList,
+          exact: true,
+          description: 'Track the maintenance incidents you reported',
+        },
+        {
+          id: 'report-incident',
+          label: 'Report New Incident',
+          path: '/app/user/incidents/report',
+          icon: PlusCircle,
+          description: 'Submit a new maintenance / incident ticket',
+        },
+        {
+          // Module D: Notifications (PAF assignment).
+          id: 'student-notifications',
+          label: 'Notifications',
+          path: '/app/user/notifications',
+          icon: Bell,
+          description: 'View incident ticketing & booking notifications',
         },
       ],
     },

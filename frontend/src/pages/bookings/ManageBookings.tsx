@@ -92,10 +92,10 @@ export const ManageBookings: React.FC = () => {
   };
 
   const filteredBookings = useMemo(() => {
-  const keyword = search.toLowerCase().trim();
+    const keyword = search.toLowerCase().trim();
 
-  return bookings
-    .filter((b) => {
+    return bookings
+      .filter((b) => {
       const matchesKeyword =
         !keyword ||
         (b.resourceName || '').toLowerCase().includes(keyword) ||
@@ -112,13 +112,13 @@ export const ManageBookings: React.FC = () => {
         (b.resourceLocation || '').toLowerCase().includes(locationFilter.toLowerCase());
 
       return matchesKeyword && matchesStatus && matchesDate && matchesLocation;
-    })
-    .sort((a, b) => {
-      const aDateTime = new Date(`${a.bookingDate}T${a.startTime || '00:00'}`).getTime();
-      const bDateTime = new Date(`${b.bookingDate}T${b.startTime || '00:00'}`).getTime();
-      return bDateTime - aDateTime;
-    });
-}, [bookings, search, statusFilter, dateFilter, locationFilter]);
+      })
+      .sort((a, b) => {
+        const aDateTime = new Date(`${a.bookingDate}T${a.startTime || '00:00'}`).getTime();
+        const bDateTime = new Date(`${b.bookingDate}T${b.startTime || '00:00'}`).getTime();
+        return bDateTime - aDateTime;
+      });
+  }, [bookings, search, statusFilter, dateFilter, locationFilter]);
 
   const stats = useMemo(() => {
     const total = bookings.length;

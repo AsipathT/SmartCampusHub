@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bell, Search, Menu, X, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getNotifications, getUnreadCount, markAsReadForUser, Notification } from '../../api/notificationApi';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -9,10 +11,81 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle, mobileMenuOpen }) => {
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+  const [recent, setRecent] = useState<Notification[]>([]);
+  const [recentLoading, setRecentLoading] = useState(false);
 
-  // Mock notification count — wire to real API later
-  const notifCount = isAdmin ? 3 : 1;
+  const refreshUnread = () => {
+    if (!user?.id) return;
+    getUnreadCount(user.id)
+      .then(setNotifCount)
+      .catch(() => setNotifCount(0));
+  };
+
+  useEffect(() => {
+    refreshUnread();
+    const interval = setInterval(refreshUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!notifOpen || !user?.id) return;
+    setRecentLoading(true);
+    getNotifications(user.id)
+      .then((list) => setRecent(list.slice(0, 5)))
+      .catch(() => setRecent([]))
+      .finally(() => setRecentLoading(false));
+    refreshUnread();
+  }, [notifOpen, user?.id]);
+
+  const openFromBell = async (n: Notification) => {
+    if (!user?.id) return;
+    if (!n.read) {
+      try {
+        await markAsReadForUser(n.id, user.id);
+        setRecent((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+        setNotifCount((c) => Math.max(0, c - 1));
+      } catch {}
+    }
+    setNotifOpen(false);
+    if (n.relatedEntityType === 'TICKET' && n.relatedEntityId) {
+      if (isAdmin && n.type === 'TICKET_DELETED') {
+        navigate('/app/admin/incidents/manage');
+      } else {
+        navigate(isAdmin ? `/app/admin/incidents/${n.relatedEntityId}` : `/app/user/incidents/${n.relatedEntityId}`);
+      }
+    } else {
+      navigate(isAdmin ? '/app/admin/incidents/notifications' : '/app/user/notifications');
+    }
+  };
+
+  const emojiFor = (type?: string) => {
+    switch (type) {
+      case 'TICKET_CREATED':          return '🆕';
+      case 'TICKET_UPDATED':          return '✏️';
+      case 'TICKET_DELETED':          return '🗑️';
+      case 'TICKET_STATUS_CHANGED':   return '🛠️';
+      case 'TICKET_PRIORITY_CHANGED': return '⚡';
+      case 'TICKET_ASSIGNED':         return '👷';
+      case 'TICKET_NEW_COMMENT':      return '💬';
+      case 'BOOKING_APPROVED':        return '✅';
+      case 'BOOKING_REJECTED':        return '🚫';
+      default: return '🔔';
+    }
+  };
+
+  const relativeTime = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'just now';
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const d = Math.floor(hr / 24);
+    return `${d}d ago`;
+  };
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 flex-shrink-0">
@@ -72,19 +145,33 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle, mobileMenuOp
                   {notifCount} new
                 </span>
               </div>
-              <div className="divide-y divide-slate-50">
-                {isAdmin ? (
-                  <>
-                    <NotifItem icon="🔧" title="Maintenance request" body="Lab A-301 reported AC issue" time="5m ago" />
-                    <NotifItem icon="📦" title="Resource added" body="New projector added to inventory" time="1h ago" />
-                    <NotifItem icon="📋" title="Daily report ready" body="Download the utilization summary" time="3h ago" />
-                  </>
+              <div className="divide-y divide-slate-50 max-h-96 overflow-y-auto">
+                {recentLoading ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-400">Loading...</div>
+                ) : recent.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-400">You're all caught up.</div>
                 ) : (
-                  <NotifItem icon="🎓" title="Campus update" body="Library hours extended this week" time="2h ago" />
+                  recent.map((n) => (
+                    <NotifItem
+                      key={n.id}
+                      icon={emojiFor(n.type)}
+                      title={n.title || 'Notification'}
+                      body={n.message}
+                      time={relativeTime(n.createdAt)}
+                      unread={!n.read}
+                      onClick={() => openFromBell(n)}
+                    />
+                  ))
                 )}
               </div>
               <div className="px-4 py-3 bg-slate-50">
-                <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors w-full text-center">
+                <button
+                  onClick={() => {
+                    setNotifOpen(false);
+                    navigate(isAdmin ? '/app/admin/incidents/notifications' : '/app/user/notifications');
+                  }}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors w-full text-center"
+                >
                   View all notifications
                 </button>
               </div>
@@ -116,15 +203,23 @@ const NotifItem: React.FC<{
   title: string;
   body: string;
   time: string;
-}> = ({ icon, title, body, time }) => (
-  <div className="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer">
+  unread?: boolean;
+  onClick?: () => void;
+}> = ({ icon, title, body, time, unread, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`w-full text-left px-4 py-3 transition-colors cursor-pointer ${
+      unread ? 'bg-indigo-50/60 hover:bg-indigo-50' : 'hover:bg-slate-50'
+    }`}
+  >
     <div className="flex items-start gap-3">
       <span className="text-xl leading-none mt-0.5">{icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-800">{title}</p>
-        <p className="text-xs text-slate-500 mt-0.5 truncate">{body}</p>
+        <p className={`text-sm ${unread ? 'font-bold text-slate-900' : 'font-semibold text-slate-800'}`}>{title}</p>
+        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{body}</p>
       </div>
       <span className="text-[10px] text-slate-400 whitespace-nowrap mt-0.5">{time}</span>
     </div>
-  </div>
+  </button>
 );
