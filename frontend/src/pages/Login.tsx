@@ -52,6 +52,8 @@ export const Login: React.FC = () => {
     }
   };
 
+//
+
   const handleEmailChange = (val: string) => {
     setEmail(val);
     validateEmail(val);
@@ -117,6 +119,7 @@ export const Login: React.FC = () => {
         email:        data.email,
         role:         data.role as UserRole,
         profileImage: data.profileImage,
+    
       };
       login(userObj, data.token);
       const navConfig = getNavConfig(userObj.role);
