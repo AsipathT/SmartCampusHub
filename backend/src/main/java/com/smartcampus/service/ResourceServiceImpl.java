@@ -33,7 +33,7 @@ public class ResourceServiceImpl implements ResourceService {
     private final ResourceTypeRepository resourceTypeRepository;
 
     @Override
-    public PageResponse<ResourceDto> getAllResources(int page, int size, String search, Long typeId, String status, String sortBy, String sortDirection) {
+    public PageResponse<ResourceDto> getAllResources(int page, int size, String search, String type, String status, String sortBy, String sortDirection) {
         // --- Sorting ---
         String resolvedSortBy = (sortBy != null && !sortBy.isBlank()) ? sortBy : "id";
         // Map frontend-friendly field names to actual entity field names
@@ -63,8 +63,8 @@ public class ResourceServiceImpl implements ResourceService {
             }
 
             // Type filter
-            if (typeId != null) {
-                predicates.add(cb.equal(root.get("type").get("id"), typeId));
+            if (type != null && !type.isBlank()) {
+                predicates.add(cb.equal(root.get("type").get("name"), type));
             }
 
             // Status filter — supports MAINTENANCE to also match OUT_OF_SERVICE
