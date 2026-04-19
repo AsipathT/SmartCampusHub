@@ -191,7 +191,7 @@ const USER_NAV: RoleNavConfig = {
     },
     {
       id: 'bookings-user',
-      label: 'My Bookings',
+      label: 'Booking Management',
       icon: CalendarDays,
       defaultOpen: true,
       items: [
@@ -204,18 +204,18 @@ const USER_NAV: RoleNavConfig = {
           description: 'Overview of your booking activity',
         },
         {
+          id: 'my-bookings-user',
+          label: 'Booking List',
+          path: '/app/bookings/my',
+          icon: ClipboardList,
+          description: 'Track your booking requests',
+        },
+        {
           id: 'add-booking-user',
           label: 'Add Booking',
           path: '/app/bookings/add',
           icon: PlusCircle,
           description: 'Create a new booking request',
-        },
-        {
-          id: 'my-bookings-user',
-          label: 'My Booking List',
-          path: '/app/bookings/my',
-          icon: ClipboardList,
-          description: 'Track your booking requests',
         },
       ],
     },
@@ -283,7 +283,7 @@ const LECTURER_NAV: RoleNavConfig = {
     },
     {
       id: 'bookings-lecturer',
-      label: 'My Bookings',
+      label: 'Booking Management',
       icon: CalendarDays,
       defaultOpen: true,
       items: [
@@ -296,18 +296,18 @@ const LECTURER_NAV: RoleNavConfig = {
           description: 'Overview of your bookings',
         },
         {
+          id: 'my-bookings-lecturer',
+          label: 'Booking List',
+          path: '/app/bookings/my',
+          icon: ClipboardList,
+          description: 'View your booking requests',
+        },
+        {
           id: 'add-booking-lecturer',
           label: 'Add Booking',
           path: '/app/bookings/add',
           icon: PlusCircle,
           description: 'Create a new booking request',
-        },
-        {
-          id: 'my-bookings-lecturer',
-          label: 'My Booking List',
-          path: '/app/bookings/my',
-          icon: ClipboardList,
-          description: 'View your booking requests',
         },
       ],
     },
