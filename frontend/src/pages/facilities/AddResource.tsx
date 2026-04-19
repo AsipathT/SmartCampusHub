@@ -221,7 +221,7 @@ export const AddResource: React.FC = () => {
 
               <Field label="Capacity (Persons)" required error={errors.capacity?.message} icon={<Users size={14} />}>
                 <input
-                  {...register('capacity')}
+                  {...register('capacity', { valueAsNumber: true })}
                   type="number"
                   min={1}
                   className={inputCls(!!errors.capacity)}
