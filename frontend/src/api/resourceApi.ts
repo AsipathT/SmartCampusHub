@@ -29,14 +29,14 @@ export const getResources = async (
   page = 0,
   size = 10,
   search = '',
-  typeId?: number | null,
+  type?: string | null,
   status?: string,
   sortBy = 'id',
   sortDirection = 'asc'
 ): Promise<PageResponse<Resource>> => {
   const params: Record<string, any> = { page, size, sortBy, sortDirection };
   if (search)  params.search = search;
-  if (typeId)  params.typeId = typeId;
+  if (type)  params.type = type;
   if (status && status !== 'ALL') params.status = status;
 
   const response = await api.get('/resources', { params });

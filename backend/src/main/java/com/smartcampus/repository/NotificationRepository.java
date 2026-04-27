@@ -12,9 +12,7 @@ import java.util.Collection;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
     Long countByUserIdAndIsReadFalse(Long userId);
-
-    //booking
+    List<Notification> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, String type);
     List<Notification> findByUserIdAndTypeInOrderByCreatedAtDesc(Long userId, Collection<String> types);
-
     Long countByUserIdAndTypeInAndIsReadFalse(Long userId, Collection<String> types);
 }

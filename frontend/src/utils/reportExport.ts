@@ -20,39 +20,66 @@ const statusDisplay = (s: string) => {
 export const exportCSV = (resources: Resource[], label = 'Resources') => {
   if (!resources.length) return;
 
+  // Escape a value for CSV: wrap in quotes, escape inner quotes
+  const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+
+  // ── Column headers (full descriptive names) ──────────────────────────────
   const headers = [
-    'ID', 'Name', 'Type', 'Location', 'Capacity',
-    'Status', 'Available From', 'Available To', 'Description',
+    'Resource ID',
+    'Resource Name',
+    'Resource Type',
+    'Location',
+    'Capacity (persons)',
+    'Status',
+    'Available From',
+    'Available To',
+    'Description',
   ];
 
-  const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
-
+  // ── Data rows ─────────────────────────────────────────────────────────────
   const rows = resources.map((r) => [
     r.id,
     r.name,
     formatType(r.type),
-    r.location,
+    r.location ?? '',
     r.capacity ?? '',
-    r.status,
+    (r.status ?? '').replace(/_/g, ' '),   // e.g. OUT_OF_SERVICE → OUT OF SERVICE
     r.availableFrom ?? '',
     r.availableTo ?? '',
     r.description ?? '',
-  ].map(escape).join(','));
+  ].map(esc).join(','));
+
+  // ── Report metadata block (each key-value in its own pair of columns) ────
+  // Using structured 2-column metadata keeps it in a separate visual area
+  // without disrupting the main data table alignment.
+  const meta = [
+    [esc('Report Title'),        esc(`SLIIT SmartCampusHub — ${label} Report`)],
+    [esc('Generated On'),        esc(nowStr())],
+    [esc('Total Records'),       esc(String(resources.length))],
+    [esc('Active Resources'),    esc(String(resources.filter(r => r.status === 'ACTIVE').length))],
+    [esc('Under Maintenance'),   esc(String(resources.filter(r => r.status === 'MAINTENANCE').length))],
+    [esc('Out of Service'),      esc(String(resources.filter(r => r.status === 'OUT_OF_SERVICE').length))],
+  ].map(pair => pair.join(','));
 
   const csv = [
-    `# SLIIT SmartCampusHub — ${label} Report`,
-    `# Generated: ${nowStr()}`,
-    `# Total Records: ${resources.length}`,
+    // Metadata section
+    ...meta,
+    // Blank separator row
     '',
-    headers.map(escape).join(','),
+    // Data table header
+    headers.map(esc).join(','),
+    // Data rows
     ...rows,
-  ].join('\n');
+    // Blank footer row
+    '',
+    esc(`End of Report — SLIIT SmartCampusHub · Confidential`),
+  ].join('\r\n');   // CRLF for maximum Excel compatibility
 
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href = url;
-  a.download = `SLIIT_${label.replace(/\s+/g, '_')}_${fileDate()}.csv`;
+  a.href     = url;
+  a.download = `SLIIT_${label.replace(/[\s/]/g, '_')}_${fileDate()}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

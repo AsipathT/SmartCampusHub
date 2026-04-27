@@ -15,7 +15,7 @@ const schema = z
   .object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
     type: z.string().min(1, 'Please select a type'),
-    capacity: z.coerce.number({ invalid_type_error: 'Capacity must be a number' }).int().min(1, 'Capacity must be greater than 0'),
+    capacity: z.number().int().min(1, 'Capacity must be greater than 0'),
     location: z.string().min(3, 'Location must be at least 3 characters'),
     availableFrom: z.string().min(1, 'Available From is required'),
     availableTo: z.string().min(1, 'Available To is required'),
@@ -79,7 +79,7 @@ export const AddResource: React.FC = () => {
     defaultValues: {
       name: '',
       type: '',
-      capacity: undefined,
+      capacity: 0,
       location: '',
       availableFrom: '08:00',
       availableTo: '20:00',
@@ -221,7 +221,7 @@ export const AddResource: React.FC = () => {
 
               <Field label="Capacity (Persons)" required error={errors.capacity?.message} icon={<Users size={14} />}>
                 <input
-                  {...register('capacity')}
+                  {...register('capacity', { valueAsNumber: true })}
                   type="number"
                   min={1}
                   className={inputCls(!!errors.capacity)}

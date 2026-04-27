@@ -41,7 +41,6 @@ const SidebarGroup: React.FC<{ group: NavGroup }> = ({ group }) => {
   useEffect(() => {
     if (isAnyActive) setOpen(true);
   }, [isAnyActive]);
-
   return (
     <div className="space-y-1">
       <button
@@ -120,6 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) =
     toast.success('Signed out successfully');
     navigate('/login');
   };
+
 
   const sidebarContent = (
     <aside className="w-72 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col h-full shadow-2xl z-20">

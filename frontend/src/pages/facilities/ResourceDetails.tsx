@@ -41,7 +41,7 @@ export const ResourceDetails: React.FC = () => {
           {/* Header Banner Image */}
           <div className="h-64 sm:h-80 md:h-96 w-full bg-slate-100 relative group border-b border-slate-100">
              {resource.imageUrl ? (
-               <img src={`http://localhost:8080${resource.imageUrl}`} alt={resource.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <img src={resource.imageUrl} alt={resource.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
              ) : (
                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
                   <ImageIcon size={64} className="mb-4 opacity-50" />

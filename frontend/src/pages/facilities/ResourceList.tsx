@@ -65,10 +65,10 @@ export const ResourceList: React.FC = () => {
           <label className="text-sm font-semibold text-slate-700">Filter by Type:</label>
           <select value={type} onChange={e => {setType(e.target.value); setPage(0);}} className="px-4 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none w-48 appearance-none cursor-pointer">
              <option value="">All Types</option>
-             <option value="Hall">Lecture Halls</option>
-             <option value="Lab">Laboratories</option>
-             <option value="Library">Libraries</option>
-             <option value="Sports">Sports Arenas</option>
+             <option value="LECTURE_HALL">Lecture Halls</option>
+             <option value="LAB">Laboratories</option>
+             <option value="LIBRARY">Libraries</option>
+             <option value="SPORTS_ARENA">Sports Arenas</option>
           </select>
         </div>
       )}
