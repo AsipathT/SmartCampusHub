@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/resources")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class ResourceController {
 
     private final ResourceService resourceService;
